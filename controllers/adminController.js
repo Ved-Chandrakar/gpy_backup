@@ -518,8 +518,16 @@ class AdminController {
 
       // Build include conditions
       const includeOptions = [
-        { model: User, as: 'hospital' },
-        { model: User, as: 'mitanin' },
+        { 
+          model: User, 
+          as: 'hospital',
+          attributes: ['id', 'name', 'hospital_name', 'mobile']
+        },
+        { 
+          model: User, 
+          as: 'mitanin',
+          attributes: ['id', 'name', 'mobile']
+        },
         { model: District, as: 'district' },
         { model: Village, as: 'village' }
       ];
@@ -586,8 +594,16 @@ class AdminController {
 
       const child = await Child.findByPk(childId, {
         include: [
-          { model: User, as: 'hospital' },
-          { model: User, as: 'mitanin' },
+          { 
+            model: User, 
+            as: 'hospital',
+            attributes: ['id', 'name', 'hospital_name', 'mobile']
+          },
+          { 
+            model: User, 
+            as: 'mitanin',
+            attributes: ['id', 'name', 'mobile']
+          },
           { model: District, as: 'district' },
           { model: Block, as: 'block' },
           { model: Village, as: 'village' }

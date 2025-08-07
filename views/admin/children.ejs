@@ -157,7 +157,7 @@
                                     <td>
                                         <div>
                                             <% if (child.hospital) { %>
-                                                <strong><%= child.hospital.name %></strong>
+                                                <strong><%= child.hospital.hospital_name || child.hospital.name || 'अस्पताल का नाम उपलब्ध नहीं' %></strong>
                                             <% } else { %>
                                                 <span class="text-muted">अनुपलब्ध</span>
                                             <% } %>
