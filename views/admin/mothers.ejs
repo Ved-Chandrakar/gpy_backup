@@ -19,12 +19,12 @@
     <!-- Search and Filter -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
+            <form method="GET" class="row g-3" id="filterForm">
+                <div class="col-md-3">
                     <input type="text" class="form-control" name="search" placeholder="माता या बच्चे का नाम खोजें..." value="<%= req.query.search || '' %>">
                 </div>
-                <div class="col-md-3">
-                    <select name="block" class="form-select">
+                <div class="col-md-2">
+                    <select name="block" id="blockFilter" class="form-select">
                         <option value="">सभी ब्लॉक</option>
                         <% if (blocks && blocks.length > 0) { %>
                             <% blocks.forEach(block => { %>
@@ -36,6 +36,18 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <select name="hospital" id="hospitalFilter" class="form-select">
+                        <option value="">सभी अस्पताल</option>
+                        <% if (hospitals && hospitals.length > 0) { %>
+                            <% hospitals.forEach(hospital => { %>
+                                <option value="<%= hospital.id %>" <%= req.query.hospital == hospital.id ? 'selected' : '' %>>
+                                    <%= hospital.hospital_name || hospital.name %>
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <select name="status" class="form-select">
                         <option value="">सभी स्थिति</option>
                         <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
@@ -231,6 +243,7 @@
                 // Preserve existing query parameters
                 if (req.query.search) params.set('search', req.query.search);
                 if (req.query.block) params.set('block', req.query.block);
+                if (req.query.hospital) params.set('hospital', req.query.hospital);
                 if (req.query.status) params.set('status', req.query.status);
                 
                 return '?' + params.toString();
@@ -261,3 +274,76 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const blockFilter = document.getElementById('blockFilter');
+    const hospitalFilter = document.getElementById('hospitalFilter');
+    
+    // Save original selected hospital value
+    const originalHospitalValue = hospitalFilter.value;
+    
+    if (blockFilter && hospitalFilter) {
+        blockFilter.addEventListener('change', function() {
+            const selectedBlock = this.value;
+            
+            // Clear hospital dropdown
+            hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+            
+            if (selectedBlock) {
+                // Show loading
+                hospitalFilter.innerHTML = '<option value="">लोड हो रहा है...</option>';
+                
+                // Fetch hospitals for selected block
+                fetch(`/admin/api/hospitals-by-block?block_code=${selectedBlock}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+                        
+                        if (data.hospitals && data.hospitals.length > 0) {
+                            data.hospitals.forEach(hospital => {
+                                const option = document.createElement('option');
+                                option.value = hospital.id;
+                                option.textContent = hospital.hospital_name || hospital.name;
+                                hospitalFilter.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading hospitals:', error);
+                        hospitalFilter.innerHTML = '<option value="">अस्पताल लोड करने में त्रुटि</option>';
+                    });
+            }
+        });
+        
+        // Load hospitals on page load if block is already selected
+        if (blockFilter.value) {
+            const selectedBlock = blockFilter.value;
+            
+            fetch(`/admin/api/hospitals-by-block?block_code=${selectedBlock}`)
+                .then(response => response.json())
+                .then(data => {
+                    hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+                    
+                    if (data.hospitals && data.hospitals.length > 0) {
+                        data.hospitals.forEach(hospital => {
+                            const option = document.createElement('option');
+                            option.value = hospital.id;
+                            option.textContent = hospital.hospital_name || hospital.name;
+                            
+                            // Restore selected value if it matches
+                            if (hospital.id == originalHospitalValue) {
+                                option.selected = true;
+                            }
+                            
+                            hospitalFilter.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading hospitals:', error);
+                });
+        }
+    }
+});
+</script>

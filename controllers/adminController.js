@@ -241,12 +241,50 @@ class AdminController {
       const offset = (page - 1) * limit;
       const search = req.query.search || '';
       const block = req.query.block || '';
+      const hospital = req.query.hospital || '';
 
       // Get blocks for the district 387 for filter dropdown
       const blocks = await Block.findAll({
         where: { lgd_district_code: 387 },
         order: [['block_name', 'ASC']]
       });
+
+      // Get hospitals for the dropdown (initially all hospitals in district 387)
+      let hospitals = [];
+      if (block) {
+        // If block is selected, get hospitals in that block only
+        hospitals = await User.findAll({
+          where: {
+            block_id: block,
+            is_active: true
+          },
+          include: [
+            { 
+              model: Role, 
+              as: 'role',
+              where: { name: 'hospital' }
+            }
+          ],
+          attributes: ['id', 'name', 'hospital_name', 'mobile'],
+          order: [['hospital_name', 'ASC'], ['name', 'ASC']]
+        });
+      } else {
+        // Get all hospitals in district 387
+        hospitals = await User.findAll({
+          where: {
+            is_active: true
+          },
+          include: [
+            { 
+              model: Role, 
+              as: 'role',
+              where: { name: 'hospital' }
+            }
+          ],
+          attributes: ['id', 'name', 'hospital_name', 'mobile'],
+          order: [['hospital_name', 'ASC'], ['name', 'ASC']]
+        });
+      }
 
       // Build where conditions for search
       let searchCondition = '';
@@ -260,6 +298,12 @@ class AdminController {
         blockCondition = `AND c.block_code = '${block}'`;
       } else {
         blockCondition = `AND b.lgd_district_code = 387`;
+      }
+
+      // Build hospital filter condition
+      let hospitalCondition = '';
+      if (hospital) {
+        hospitalCondition = `AND c.hospital_id = '${hospital}'`;
       }
 
       // Raw SQL query to get unique mothers with child counts and last child entry date
@@ -289,7 +333,7 @@ class AdminController {
         LEFT JOIN master_district d ON c.district_code = d.district_code
         LEFT JOIN master_block b ON c.block_code = b.block_code
         LEFT JOIN master_village v ON c.village_code = v.village_code
-        WHERE 1=1 ${searchCondition} ${blockCondition}
+        WHERE 1=1 ${searchCondition} ${blockCondition} ${hospitalCondition}
         GROUP BY c.mother_name, c.mother_mobile, c.hospital_id, c.assigned_mitanin_id, 
                  c.district_code, c.block_code, c.village_code, c.is_active,
                  h.name, m.name, d.district_name, b.block_name, v.village_name
@@ -302,7 +346,7 @@ class AdminController {
         SELECT COUNT(DISTINCT CONCAT(c.mother_name, '_', COALESCE(c.mother_mobile, ''))) as total
         FROM tbl_child c
         LEFT JOIN master_block b ON c.block_code = b.block_code
-        WHERE 1=1 ${searchCondition} ${blockCondition}
+        WHERE 1=1 ${searchCondition} ${blockCondition} ${hospitalCondition}
       `;
 
       const [mothersResult] = await dbInstance.query(mothersQuery);
@@ -317,6 +361,7 @@ class AdminController {
         currentPage: 'mothers',
         mothers,
         blocks,
+        hospitals,
         page: page,
         totalPages,
         totalMothers: totalMothers,
@@ -787,6 +832,56 @@ class AdminController {
     } catch (error) {
       console.error('Get Blocks Error:', error);
       res.status(500).json({ error: 'Failed to load blocks' });
+    }
+  }
+
+  // API endpoint to get hospitals by block
+  async getHospitalsByBlock(req, res) {
+    try {
+      const blockCode = req.query.block_code;
+      console.log('Hospital API called with block_code:', blockCode);
+      
+      if (!blockCode) {
+        // Return all hospitals if no block selected
+        const hospitalsQuery = `
+          SELECT DISTINCT 
+            h.id, 
+            h.name, 
+            h.hospital_name, 
+            h.mobile
+          FROM tbl_user h
+          INNER JOIN master_role r ON h.role_id = r.id
+          WHERE r.name = 'hospital' 
+            AND h.is_active = 1
+          ORDER BY h.hospital_name ASC, h.name ASC
+        `;
+
+        const [hospitals] = await dbInstance.query(hospitalsQuery);
+        console.log('All hospitals count:', hospitals.length);
+        return res.json({ hospitals });
+      }
+
+      // Find hospitals by block_id (direct assignment to block)
+      const hospitalsQuery = `
+        SELECT DISTINCT 
+          h.id, 
+          h.name, 
+          h.hospital_name, 
+          h.mobile,
+          h.block_id
+        FROM tbl_user h
+        INNER JOIN master_role r ON h.role_id = r.id
+        WHERE r.name = 'hospital' 
+          AND h.is_active = 1
+          AND h.block_id = '${blockCode}'
+        ORDER BY h.hospital_name ASC, h.name ASC
+      `;
+
+      const [hospitals] = await dbInstance.query(hospitalsQuery);
+
+      res.json({ hospitals });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to load hospitals' });
     }
   }
 
