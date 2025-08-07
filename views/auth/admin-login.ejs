@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>एडमिन लॉगिन - ग्रीन पालना योजना</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts for Hindi -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --secondary-color: #20c997;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            display: flex;
+        }
+
+        .login-left {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="10" r="1" fill="rgba(255,255,255,0.06)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        .login-left > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-text {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .features {
+            list-style: none;
+            text-align: left;
+        }
+
+        .features li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .features li i {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .login-right {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            font-size: 1.1rem;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+
+        .form-floating {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px 15px 10px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            height: 60px;
+            line-height: 1.5;
+        }
+
+        .form-control.has-icon {
+            padding-left: 50px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+            background: white;
+        }
+
+        .form-control:focus + .form-label,
+        .form-control:not(:placeholder-shown) + .form-label {
+            transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+            color: var(--primary-color);
+        }
+
+        .form-label {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            background: transparent;
+            padding: 0 5px;
+            z-index: 2;
+        }
+
+        .form-label.has-icon {
+            left: 50px;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .btn-login.loading .btn-text {
+            opacity: 0;
+        }
+
+        .btn-login.loading .loading {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-check-input {
+            margin-right: 10px;
+        }
+
+        .form-check-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: var(--secondary-color);
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .footer-text a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+                max-width: 400px;
+                margin: 20px;
+            }
+
+            .login-left {
+                padding: 40px 30px;
+            }
+
+            .login-right {
+                padding: 40px 30px;
+            }
+
+            .welcome-text {
+                font-size: 1.5rem;
+            }
+
+            .login-title {
+                font-size: 2rem;
+            }
+
+            .logo {
+                font-size: 3rem;
+            }
+        }
+
+        /* Animation */
+        .login-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Input Icons */
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            z-index: 10;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .form-control:focus ~ .input-icon {
+            color: var(--primary-color);
+        }
+
+        .form-control.has-icon {
+            padding-left: 50px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            padding: 5px;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Side - Welcome Section -->
+        <div class="login-left">
+            <div class="logo">
+                <img src="/images/logo.png" class="card-img-top" alt="logo" style="height: 250px; object-fit: cover;">
+
+            </div>
+            <h1 class="welcome-text">ग्रीन पालना योजना</h1>
+            <p class="welcome-subtitle">
+                ग्रीन पालना योजना एडमिन पैनल में आपका स्वागत है।<br>
+                पर्यावरण संरक्षण के लिए एक कदम आगे।
+            </p>
+            <ul class="features">
+                <li>
+                    <i class="fas fa-seedling"></i>
+                    पौधा प्रबंधन व्यवस्था
+                </li>
+                <li>
+                    <i class="fas fa-users"></i>
+                    माता/हितग्राही प्रबंधन सिस्टम
+                </li>
+                <li>
+                    <i class="fas fa-chart-line"></i>
+                    रिपोर्ट और विश्लेषण
+                </li>
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    सुरक्षित डेटा प्रबंधन
+                </li>
+            </ul>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="login-right">
+            <div class="login-header">
+                <h2 class="login-title">एडमिन लॉगिन</h2>
+                <p class="login-subtitle">कृपया अपनी जानकारी दर्ज करें</p>
+            </div>
+
+            <% if (flash && flash.error) { %>
+                <div class="alert alert-danger d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <%= flash.error %>
+                </div>
+            <% } %>
+
+            <% if (flash && flash.success) { %>
+                <div class="alert alert-success d-flex align-items-center">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <%= flash.success %>
+                </div>
+            <% } %>
+
+            <form id="loginForm" action="/admin/login" method="POST">
+                <div class="form-floating">
+                    <div class="input-group">
+                        <i class="input-icon fas fa-user"></i>
+                        <input type="text" class="form-control has-icon" id="mobile" name="mobile" 
+                               placeholder=" " required maxlength="20" 
+                               title="कृपया यूजरनेम या मोबाइल नंबर दर्ज करें">
+                        <label for="mobile" class="form-label has-icon">यूजरनेम / मोबाइल नंबर</label>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    <div class="input-group">
+                        <i class="input-icon fas fa-lock"></i>
+                        <input type="password" class="form-control has-icon" id="password" name="password" 
+                               placeholder=" " required minlength="6">
+                        <label for="password" class="form-label has-icon">पासवर्ड</label>
+                        <i class="password-toggle fas fa-eye" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">
+                            मुझे याद रखें
+                        </label>
+                    </div>
+                    <a href="/admin/forgot-password" class="forgot-password">पासवर्ड भूल गए?</a>
+                </div>
+
+                <button type="submit" class="btn btn-login" id="loginBtn">
+                    <span class="btn-text">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        लॉगिन करें
+                    </span>
+                    <div class="loading"></div>
+                </button>
+            </form>
+
+            <div class="footer-text">
+                <p>© 2024 ग्रीन पालना योजना। सभी अधिकार सुरक्षित।</p>
+                <p>सहायता के लिए <a href="/support">यहाँ संपर्क करें</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Username/Mobile input validation
+        document.getElementById('mobile').addEventListener('input', function(e) {
+            // Allow alphanumeric characters and numbers for username/mobile
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+            if (this.value.length > 20) {
+                this.value = this.value.slice(0, 20);
+            }
+            handleFloatingLabel(this);
+        });
+
+        // Password input handler
+        document.getElementById('password').addEventListener('input', function(e) {
+            handleFloatingLabel(this);
+        });
+
+        // Handle floating labels
+        function handleFloatingLabel(input) {
+            const label = input.nextElementSibling;
+            if (input.value.length > 0 || input === document.activeElement) {
+                label.style.transform = 'scale(0.85) translateY(-1.2rem) translateX(0.15rem)';
+                label.style.color = 'var(--primary-color)';
+                if (input === document.activeElement) {
+                    input.style.borderColor = 'var(--primary-color)';
+                }
+            } else {
+                label.style.transform = 'translateY(-50%)';
+                label.style.color = '#6c757d';
+                input.style.borderColor = '#e9ecef';
+            }
+        }
+
+        // Handle focus and blur events
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                handleFloatingLabel(this);
+            });
+            
+            input.addEventListener('blur', function() {
+                handleFloatingLabel(this);
+            });
+        });
+
+        // Form submission with loading state
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const loginBtn = document.getElementById('loginBtn');
+            const mobile = document.getElementById('mobile').value;
+            const password = document.getElementById('password').value;
+
+            // Basic validation
+            if (!mobile || mobile.length < 3) {
+                e.preventDefault();
+                alert('कृपया यूजरनेम या मोबाइल नंबर दर्ज करें');
+                return false;
+            }
+
+            if (!password || password.length < 6) {
+                e.preventDefault();
+                alert('कृपया कम से कम 6 अक्षर का पासवर्ड दर्ज करें');
+                return false;
+            }
+
+            // Add loading state
+            loginBtn.classList.add('loading');
+            loginBtn.disabled = true;
+
+            // Remove loading state after 10 seconds (timeout)
+            setTimeout(() => {
+                loginBtn.classList.remove('loading');
+                loginBtn.disabled = false;
+            }, 10000);
+        });
+
+        // Auto-focus on mobile field and initialize floating labels
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('mobile').focus();
+            
+            // Initialize floating labels for any pre-filled inputs
+            document.querySelectorAll('.form-control').forEach(input => {
+                handleFloatingLabel(input);
+            });
+        });
+
+        // Remove alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

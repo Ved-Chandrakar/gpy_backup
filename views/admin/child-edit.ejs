@@ -1,0 +1,178 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-edit text-warning me-2"></i>
+                        बच्चे की जानकारी संपादित करें
+                    </h1>
+                    <p class="text-muted"><%= child.child_name || child.mother_name + ' का बच्चा' %></p>
+                </div>
+                <a href="/admin/children" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    वापस जाएं
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">बच्चे की जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/children/<%= child.id %>/edit" method="POST">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="child_name" class="form-label">बच्चे का नाम</label>
+                                <input type="text" class="form-control" id="child_name" name="child_name" value="<%= child.child_name || '' %>">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="child_gender" class="form-label">लिंग <span class="text-danger">*</span></label>
+                                <select class="form-select" id="child_gender" name="gender" required>
+                                    <option value="">लिंग चुनें</option>
+                                    <option value="male" <%= child.gender === 'male' ? 'selected' : '' %>>पुत्र</option>
+                                    <option value="female" <%= child.gender === 'female' ? 'selected' : '' %>>पुत्री</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="mother_name" class="form-label">माता का नाम <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="mother_name" name="mother_name" value="<%= child.mother_name %>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="mother_mobile" class="form-label">माता का मोबाइल</label>
+                                <input type="tel" class="form-control" id="mother_mobile" name="mother_mobile" value="<%= child.mother_mobile || '' %>" pattern="[0-9]{10}">
+                                <div class="form-text">10 अंकों का मोबाइल नंबर दर्ज करें</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dob" class="form-label">जन्म तिथि <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dob" name="dob" value="<%= child.dob ? new Date(child.dob).toISOString().split('T')[0] : '' %>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="child_order" class="form-label">बच्चे का क्रम</label>
+                                <select class="form-select" id="child_order" name="child_order">
+                                    <option value="">क्रम चुनें</option>
+                                    <option value="first" <%= child.child_order === 'first' ? 'selected' : '' %>>पहला बच्चा</option>
+                                    <option value="second" <%= child.child_order === 'second' ? 'selected' : '' %>>दूसरा बच्चा</option>
+                                    <option value="third" <%= child.child_order === 'third' ? 'selected' : '' %>>तीसरा बच्चा</option>
+                                    <option value="fourth" <%= child.child_order === 'fourth' ? 'selected' : '' %>>चौथा बच्चा</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="delivery_type" class="form-label">प्रसव प्रकार</label>
+                                <select class="form-select" id="delivery_type" name="delivery_type">
+                                    <option value="">प्रसव प्रकार चुनें</option>
+                                    <option value="normal" <%= child.delivery_type === 'normal' ? 'selected' : '' %>>सामान्य प्रसव</option>
+                                    <option value="cesarean" <%= child.delivery_type === 'cesarean' ? 'selected' : '' %>>सिजेरियन</option>
+                                    <option value="assisted" <%= child.delivery_type === 'assisted' ? 'selected' : '' %>>सहायक प्रसव</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="block_code" class="form-label">ब्लॉक <span class="text-danger">*</span></label>
+                                <select class="form-select" id="block_code" name="block_code" required>
+                                    <option value="">ब्लॉक चुनें</option>
+                                    <% blocks.forEach(block => { %>
+                                        <option value="<%= block.block_code %>" <%= (String(child.block_code) === String(block.block_code)) ? 'selected' : '' %>>
+                                            <%= block.block_name %>
+                                        </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="hospital_id" class="form-label">अस्पताल</label>
+                                <select class="form-select" id="hospital_id" name="hospital_id">
+                                    <option value="">अस्पताल चुनें</option>
+                                    <% hospitals.forEach(hospital => { %>
+                                        <option value="<%= hospital.id %>" <%= (String(child.hospital_id) === String(hospital.id)) ? 'selected' : '' %>>
+                                            <%= hospital.name %>
+                                        </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="is_active" class="form-label">स्थिति</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" <%= child.is_active ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="is_active">
+                                        सक्रिय
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/admin/children" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                रद्द करें
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Child Info Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">वर्तमान जानकारी</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">बच्चे का नाम:</small>
+                        <div><strong><%= child.child_name || 'अनुपलब्ध' %></strong></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">माता का नाम:</small>
+                        <div><%= child.mother_name %></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">लिंग:</small>
+                        <div>
+                            <span class="badge bg-<%= child.gender === 'male' ? 'primary' : 'success' %>">
+                                <%= child.gender === 'male' ? 'पुत्र' : 'पुत्री' %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">जन्म तिथि:</small>
+                        <div><%= new Date(child.dob).toLocaleDateString('hi-IN') %></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">ब्लॉक:</small>
+                        <div><%= child.block ? child.block.block_name : 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">अस्पताल:</small>
+                        <div><%= child.hospital ? child.hospital.name : 'अनुपलब्ध' %></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

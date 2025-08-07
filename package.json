@@ -1,0 +1,53 @@
+{
+  "name": "green-paalna-yojna-backend",
+  "version": "1.0.0",
+  "description": "Backend for Green Paalna Yojna - Plant distribution tracking system for new mothers in Chhattisgarh",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "government",
+    "plant-tracking",
+    "chhattisgarh"
+  ],
+  "author": "Green Paalna Yojna Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "axios-cookiejar-support": "^6.0.3",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.1.0",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.8.1",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "firebase-admin": "^13.4.0",
+    "form-data": "^4.0.3",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.2",
+    "method-override": "^3.0.0",
+    "moment": "^2.29.4",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.0",
+    "node-cron": "^3.0.2",
+    "sequelize": "^6.32.1",
+    "tough-cookie": "^5.1.2",
+    "ua-parser-js": "^2.0.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

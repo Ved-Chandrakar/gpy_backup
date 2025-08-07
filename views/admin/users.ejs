@@ -1,0 +1,437 @@
+<%- include('../partials/header') %>
+
+<!-- Page Header -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-users text-primary me-2"></i>
+        <%= title %>
+    </h1>
+    <div class="d-sm-flex align-items-center">
+        <span class="badge bg-primary-soft text-primary me-2">
+            <i class="fas fa-users me-1"></i>
+            कुल <%= totalUsers %> 
+            <% if (typeof filterType !== 'undefined') { %>
+                <%= filterType === 'hospital' ? 'अस्पताल' : 
+                    filterType === 'mitanin' ? 'मितानिन' : 
+                    filterType === 'district' ? 'जिला स्तरीय' : '' %> 
+            <% } %>
+            उपयोगकर्ता
+        </span>
+        <a href="/admin/users/new" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>नया उपयोगकर्ता
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter Card -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-search me-2"></i>
+            खोज
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">नाम या फोन नंबर से खोजें</label>
+                <input type="text" class="form-control" name="search" placeholder="नाम या फोन नंबर दर्ज करें..." value="<%= req.query.search || '' %>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">स्थिति</label>
+                <select name="status" class="form-select">
+                    <option value="">सभी स्थिति</option>
+                    <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
+                    <option value="inactive" <%= req.query.status === 'inactive' ? 'selected' : '' %>>निष्क्रिय</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i>खोजें
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<% if (typeof filterType !== 'undefined') { %>
+<!-- Quick Navigation for Filtered Views -->
+<div class="card shadow mb-4">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <span class="text-muted me-3">फिल्टर:</span>
+                <span class="badge bg-primary">
+                    <%= filterType === 'hospital' ? 'अस्पताल उपयोगकर्ता' : 
+                        filterType === 'mitanin' ? 'मितानिन उपयोगकर्ता' :
+                        filterType === 'district' ? 'जिला स्तरीय उपयोगकर्ता' : 'फिल्टर लागू' %>
+                </span>
+            </div>
+            <div class="btn-group" role="group">
+                <a href="/admin/users" class="btn btn-outline-secondary btn-sm <%= filterType === 'district' ? 'active' : '' %>">
+                    <i class="fas fa-users-cog me-1"></i>जिला स्तरीय
+                </a>
+                <a href="/admin/users/hospitals" class="btn btn-outline-info btn-sm <%= filterType === 'hospital' ? 'active' : '' %>">
+                    <i class="fas fa-hospital me-1"></i>अस्पताल
+                </a>
+                <a href="/admin/users/mitanins" class="btn btn-outline-success btn-sm <%= filterType === 'mitanin' ? 'active' : '' %>">
+                    <i class="fas fa-user-nurse me-1"></i>मितानिन
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<!-- Users Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-table me-2"></i>
+            <%= typeof filterType !== 'undefined' && filterType === 'hospital' ? 'अस्पताल' : 
+                typeof filterType !== 'undefined' && filterType === 'mitanin' ? 'मितानिन' : 
+                typeof filterType !== 'undefined' && filterType === 'district' ? 'जिला स्तरीय' : '' %> उपयोगकर्ता सूची
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>नाम</th>
+                        <th>फोन नंबर</th>
+                        <th>स्थिति</th>
+                        <th>पंजीकरण तिथि</th>
+                        <th>कार्य</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (users && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><%= user.id %></td>
+                                    <td>
+                                        <div>
+                                            <strong><%= user.name %></strong>
+                                            <% if (user.email) { %>
+                                                <br><small class="text-muted"><%= user.email %></small>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td><%= user.mobile || user.phone_number || 'N/A' %></td>
+                                    <td>
+                                        <span class="badge bg-<%= user.is_active ? 'success' : 'secondary' %>">
+                                            <%= user.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(user.created_at).toLocaleDateString('hi-IN') %></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary view-user-btn" data-bs-toggle="modal" data-bs-target="#userViewModal" data-user-id="<%= user.id %>">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </button>
+                                            <a href="/admin/users/<%= user.id %>/edit" class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">कोई उपयोगकर्ता नहीं मिला</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+        <div class="d-flex justify-content-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage - 1 %>">पिछला</a>
+                        </li>
+                    <% } %>
+                    
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>">अगला</a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+<% } %>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userViewModal" tabindex="-1" aria-labelledby="userViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userViewModalLabel">
+                    <i class="fas fa-user text-primary me-2"></i>उपयोगकर्ता विवरण
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userDetailsContent">
+                    <div class="d-flex justify-content-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">लोड हो रहा है...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>बंद करें
+                </button>
+                <button type="button" class="btn btn-warning" id="editUserBtn">
+                    <i class="fas fa-edit me-1"></i>संपादित करें
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUserId = null;
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, modal functionality ready');
+    
+    // Add event listeners to all view buttons
+    const viewButtons = document.querySelectorAll('.view-user-btn');
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            console.log('View button clicked for user ID:', userId);
+            loadUserDetails(userId);
+        });
+    });
+    
+    // Add event listener to edit button in modal
+    const editButton = document.getElementById('editUserBtn');
+    if (editButton) {
+        editButton.addEventListener('click', function() {
+            editCurrentUser();
+        });
+    }
+});
+
+function loadUserDetails(userId) {
+    console.log('loadUserDetails called with userId:', userId);
+    currentUserId = userId;
+    
+    try {
+        // Show loading state
+        const contentElement = document.getElementById('userDetailsContent');
+        if (contentElement) {
+            contentElement.innerHTML = `
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">लोड हो रहा है...</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            console.error('userDetailsContent element not found');
+            return;
+        }
+        
+        console.log('Starting fetch request to:', `/admin/users/${userId}/details`);
+        
+        // Fetch user details with credentials
+        fetch(`/admin/users/${userId}/details`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                console.log('Fetch response received');
+                console.log('API response status:', response.status);
+                console.log('API response ok:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('API response data parsed successfully:', data);
+                if (data && data.success) {
+                    console.log('Data success is true, calling displayUserDetails');
+                    displayUserDetails(data.user);
+                } else {
+                    console.log('Data success is false or data is invalid');
+                    document.getElementById('userDetailsContent').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            उपयोगकर्ता विवरण लोड करने में त्रुटि: ${data?.message || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error occurred:', error);
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+                
+                document.getElementById('userDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        नेटवर्क त्रुटि हुई है: ${error.message}
+                    </div>
+                `;
+            });
+    } catch (error) {
+        console.error('Error in loadUserDetails function:', error);
+        alert('Error in loadUserDetails: ' + error.message);
+    }
+}
+
+function displayUserDetails(user) {
+    console.log('displayUserDetails called with user:', user);
+    
+    const roleNames = {
+        'state': 'राज्य एडमिन',
+        'collector': 'जिला कलेक्टर',
+        'hospital': 'अस्पताल',
+        'mitanin': 'मितानिन',
+        'mother': 'माता'
+    };
+    
+    const roleName = user.role ? roleNames[user.role.name] || user.role.name : 'अज्ञात';
+    console.log('Role name determined:', roleName);
+    
+    const contentElement = document.getElementById('userDetailsContent');
+    if (!contentElement) {
+        console.error('userDetailsContent element not found when trying to display details');
+        return;
+    }
+    
+    console.log('Setting innerHTML for user details');
+    
+    contentElement.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-user me-2"></i>व्यक्तिगत जानकारी</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>नाम:</strong></td>
+                                <td>${user.name || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>फोन नंबर:</strong></td>
+                                <td>${user.mobile || user.phone_number || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ईमेल:</strong></td>
+                                <td>${user.email || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>भूमिका:</strong></td>
+                                <td><span class="badge bg-info">${roleName}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>स्थिति:</strong></td>
+                                <td>
+                                    <span class="badge bg-${user.is_active ? 'success' : 'secondary'}">
+                                        ${user.is_active ? 'सक्रिय' : 'निष्क्रिय'}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>अतिरिक्त जानकारी</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>User ID:</strong></td>
+                                <td>${user.userid || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>पंजीकरण तिथि:</strong></td>
+                                <td>${new Date(user.created_at).toLocaleDateString('hi-IN')}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>अंतिम अपडेट:</strong></td>
+                                <td>${new Date(user.updated_at).toLocaleDateString('hi-IN')}</td>
+                            </tr>
+                            ${user.last_login ? `
+                            <tr>
+                                <td><strong>अंतिम लॉगिन:</strong></td>
+                                <td>${new Date(user.last_login).toLocaleDateString('hi-IN')}</td>
+                            </tr>
+                            ` : ''}
+                            <tr>
+                                <td><strong>पासवर्ड बदला गया:</strong></td>
+                                <td>
+                                    <span class="badge bg-${user.is_password_changed ? 'success' : 'warning'}">
+                                        ${user.is_password_changed ? 'हाँ' : 'नहीं'}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        ${user.hospital_name ? `
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-hospital me-2"></i>अस्पताल जानकारी</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>अस्पताल का नाम:</strong> ${user.hospital_name}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        ` : ''}
+    `;
+}
+
+function editCurrentUser() {
+    if (currentUserId) {
+        window.location.href = `/admin/users/${currentUserId}/edit`;
+    }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,387 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-0">
+                <i class="fas fa-cog text-secondary me-2"></i>
+                सिस्टम सेटिंग्स
+            </h1>
+            <p class="text-muted">ग्रीन पालना योजना की सेटिंग्स और कॉन्फ़िगरेशन</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- General Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sliders-h me-2"></i>
+                        सामान्य सेटिंग्स
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="generalSettingsForm">
+                        <div class="mb-3">
+                            <label for="systemName" class="form-label">सिस्टम नाम</label>
+                            <input type="text" class="form-control" id="systemName" value="ग्रीन पालना योजना">
+                        </div>
+                        <div class="mb-3">
+                            <label for="systemVersion" class="form-label">सिस्टम संस्करण</label>
+                            <input type="text" class="form-control" id="systemVersion" value="1.0.0" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="adminEmail" class="form-label">एडमिन ईमेल</label>
+                            <input type="email" class="form-control" id="adminEmail" value="admin@greenpaalna.gov.in">
+                        </div>
+                        <div class="mb-3">
+                            <label for="supportPhone" class="form-label">सहायता फोन</label>
+                            <input type="tel" class="form-control" id="supportPhone" value="+91-771-XXXXXXX">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="maintenanceMode">
+                                <label class="form-check-label" for="maintenanceMode">
+                                    मेंटेनेंस मोड सक्षम करें
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">सेटिंग्स सेव करें</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photo Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-camera me-2"></i>
+                        फोटो सेटिंग्स
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="photoSettingsForm">
+                        <div class="mb-3">
+                            <label for="maxFileSize" class="form-label">अधिकतम फाइल साइज़ (MB)</label>
+                            <input type="number" class="form-control" id="maxFileSize" value="5" min="1" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <label for="allowedFormats" class="form-label">अनुमतित फॉर्मेट</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allowJPEG" checked>
+                                <label class="form-check-label" for="allowJPEG">JPEG</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allowPNG" checked>
+                                <label class="form-check-label" for="allowPNG">PNG</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allowWEBP">
+                                <label class="form-check-label" for="allowWEBP">WebP</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="compressionQuality" class="form-label">कंप्रेशन क्वालिटी (%)</label>
+                            <input type="range" class="form-range" id="compressionQuality" min="60" max="100" value="80">
+                            <div class="d-flex justify-content-between">
+                                <small>60%</small>
+                                <small>100%</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="autoApprove">
+                                <label class="form-check-label" for="autoApprove">
+                                    फोटो को स्वचालित रूप से अनुमोदित करें
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">सेटिंग्स सेव करें</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        सूचना सेटिंग्स
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="notificationSettingsForm">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">
+                                    ईमेल सूचनाएं सक्षम करें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="smsNotifications" checked>
+                                <label class="form-check-label" for="smsNotifications">
+                                    SMS सूचनाएं सक्षम करें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dailyReports" checked>
+                                <label class="form-check-label" for="dailyReports">
+                                    दैनिक रिपोर्ट भेजें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="weeklyReports">
+                                <label class="form-check-label" for="weeklyReports">
+                                    साप्ताहिक रिपोर्ट भेजें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notificationEmail" class="form-label">सूचना ईमेल</label>
+                            <input type="email" class="form-control" id="notificationEmail" value="notifications@greenpaalna.gov.in">
+                        </div>
+                        <button type="submit" class="btn btn-primary">सेटिंग्स सेव करें</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        डेटाबेस सेटिंग्स
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">डेटाबेस कनेक्शन स्थिति</label>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2">कनेक्टेड</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="testConnection()">
+                                <i class="fas fa-sync me-1"></i>कनेक्शन टेस्ट करें
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">डेटाबेस साइज़</label>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                                250MB / 1GB
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">बैकअप सेटिंग्स</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="autoBackup" checked>
+                            <label class="form-check-label" for="autoBackup">
+                                स्वचालित बैकअप सक्षम करें
+                            </label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="backupFrequency" id="dailyBackup" checked>
+                            <label class="form-check-label" for="dailyBackup">दैनिक</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="backupFrequency" id="weeklyBackup">
+                            <label class="form-check-label" for="weeklyBackup">साप्ताहिक</label>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" onclick="createBackup()">
+                            <i class="fas fa-download me-2"></i>अभी बैकअप बनाएं
+                        </button>
+                        <button class="btn btn-warning" onclick="optimizeDatabase()">
+                            <i class="fas fa-tools me-2"></i>डेटाबेस ऑप्टिमाइज़ करें
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        सुरक्षा सेटिंग्स
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="securitySettingsForm">
+                        <div class="mb-3">
+                            <label for="sessionTimeout" class="form-label">सेशन टाइमआउट (मिनट)</label>
+                            <input type="number" class="form-control" id="sessionTimeout" value="30" min="15" max="120">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxLoginAttempts" class="form-label">अधिकतम लॉगिन प्रयास</label>
+                            <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="3" max="10">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+                                <label class="form-check-label" for="twoFactorAuth">
+                                    दो-कारक प्रमाणीकरण सक्षम करें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="logAllActions" checked>
+                                <label class="form-check-label" for="logAllActions">
+                                    सभी कार्यों को लॉग करें
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="passwordPolicy" class="form-label">पासवर्ड नीति</label>
+                            <select class="form-select" id="passwordPolicy">
+                                <option value="weak">कमजोर (6 अक्षर)</option>
+                                <option value="medium" selected>मध्यम (8 अक्षर, नंबर)</option>
+                                <option value="strong">मजबूत (12 अक्षर, नंबर, विशेष चिह्न)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">सेटिंग्स सेव करें</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        सिस्टम की जानकारी
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>सिस्टम नाम:</strong></td>
+                                    <td>ग्रीन पालना योजना</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>संस्करण:</strong></td>
+                                    <td>1.0.0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>डेटाबेस:</strong></td>
+                                    <td>MySQL 8.0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Node.js:</strong></td>
+                                    <td>v18.0.0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>सर्वर स्थिति:</strong></td>
+                                    <td><span class="badge bg-success">चालू</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>अपटाइम:</strong></td>
+                                    <td>5 घंटे 32 मिनट</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>मेमोरी उपयोग:</strong></td>
+                                    <td>125 MB / 512 MB</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>अंतिम बैकअप:</strong></td>
+                                    <td>आज, 02:00 AM</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-info" onclick="viewSystemLogs()">
+                            <i class="fas fa-file-alt me-2"></i>सिस्टम लॉग देखें
+                        </button>
+                        <button class="btn btn-warning" onclick="restartSystem()">
+                            <i class="fas fa-redo me-2"></i>सिस्टम रीस्टार्ट करें
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form submissions
+document.getElementById('generalSettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('सामान्य सेटिंग्स सेव की गई');
+});
+
+document.getElementById('photoSettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('फोटो सेटिंग्स सेव की गई');
+});
+
+document.getElementById('notificationSettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('सूचना सेटिंग्स सेव की गई');
+});
+
+document.getElementById('securitySettingsForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('सुरक्षा सेटिंग्स सेव की गई');
+});
+
+// Utility functions
+function testConnection() {
+    alert('डेटाबेस कनेक्शन सफल');
+}
+
+function createBackup() {
+    if (confirm('क्या आप अभी बैकअप बनाना चाहते हैं?')) {
+        alert('बैकअप प्रक्रिया शुरू की गई');
+    }
+}
+
+function optimizeDatabase() {
+    if (confirm('डेटाबेस ऑप्टिमाइज़ेशन में कुछ समय लग सकता है। जारी रखें?')) {
+        alert('डेटाबेस ऑप्टिमाइज़ेशन शुरू की गई');
+    }
+}
+
+function viewSystemLogs() {
+    window.open('/admin/logs', '_blank');
+}
+
+function restartSystem() {
+    if (confirm('सिस्टम रीस्टार्ट करने से सभी उपयोगकर्ता डिस्कनेक्ट हो जाएंगे। जारी रखें?')) {
+        alert('सिस्टम रीस्टार्ट की गई');
+    }
+}
+
+// Update compression quality display
+document.getElementById('compressionQuality').addEventListener('input', function(e) {
+    const value = e.target.value;
+    const nextSibling = e.target.nextElementSibling;
+    const small = nextSibling.querySelector('small:last-child');
+    small.textContent = value + '%';
+});
+</script>
+
+<%- include('../partials/footer') %>

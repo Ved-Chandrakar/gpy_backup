@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - ग्रीन पालना योजना</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/admin.css?v=5.0">
+    
+    <!-- Google Fonts for Hindi -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <img src="/images/logo.png" class="card-img-top" alt="logo">
+                </div>
+                <div class="brand-content">
+                    <h4 class="brand-title">ग्रीन पालना योजना</h4>
+                    <p class="brand-subtitle">एडमिन पैनल</p>
+                </div>
+            </div>
+            <button class="btn btn-link text-white d-md-none" id="sidebarToggle">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>" href="/admin">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>डैशबोर्ड</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle <%= currentPage === 'users' || currentPage === 'hospitals' || currentPage === 'mitanins' || currentPage === 'mothers' ? 'active' : '' %>" href="#" data-bs-toggle="collapse" data-bs-target="#usersSubmenu">
+                        <i class="fas fa-users"></i>
+                        <span>उपयोगकर्ता</span>
+                    </a>
+                    <div class="collapse" id="usersSubmenu">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item">
+                                <a class="nav-link <%= currentPage === 'users' ? 'active' : '' %>" href="/admin/users">
+                                    <i class="fas fa-users-cog"></i>
+                                    <span>जिला स्तरीय उपयोगकर्ता</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= currentPage === 'hospitals' ? 'active' : '' %>" href="/admin/users/hospitals">
+                                    <i class="fas fa-hospital"></i>
+                                    <span>अस्पताल उपयोगकर्ता</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= currentPage === 'mitanins' ? 'active' : '' %>" href="/admin/users/mitanins">
+                                    <i class="fas fa-user-nurse"></i>
+                                    <span>मितानिन उपयोगकर्ता</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <%= currentPage === 'mothers' ? 'active' : '' %>" href="/admin/mothers">
+                                    <i class="fas fa-female"></i>
+                                    <span>माताएं</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'children' ? 'active' : '' %>" href="/admin/children">
+                        <i class="fas fa-baby"></i>
+                        <span>बच्चे</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'plants' ? 'active' : '' %>" href="/admin/plants">
+                        <i class="fas fa-seedling"></i>
+                        <span>पौधे</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'assignments' ? 'active' : '' %>" href="/admin/assignments">
+                        <i class="fas fa-tasks"></i>
+                        <span>पौधा निर्धारण</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'photos' ? 'active' : '' %>" href="/admin/photos">
+                        <i class="fas fa-camera"></i>
+                        <span>फोटो गैलरी</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <%= currentPage === 'reports' ? 'active' : '' %>" href="/admin/reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>रिपोर्ट्स</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu">
+                        <i class="fas fa-cog"></i>
+                        <span>सेटिंग्स</span>
+                    </a>
+                    <div class="collapse" id="settingsSubmenu">
+                        <ul class="nav flex-column sub-menu">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-user"></i>
+                                    <span>प्रोफाइल</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-cogs"></i>
+                                    <span>सिस्टम सेटिंग्स</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="/admin/logout" class="btn btn-outline-light btn-sm w-100">
+                <i class="fas fa-sign-out-alt me-1"></i>
+                लॉग आउट
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm topbar">
+            <div class="container-fluid">
+                <button class="btn btn-link d-md-none" id="sidebarToggleTop">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="navbar-nav ms-auto">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-gray-600" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge bg-danger badge-counter">3+</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end shadow">
+                            <h6 class="dropdown-header">सूचनाएं</h6>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                नए पौधे के लिए अनुरोध
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-info-circle text-info me-2"></i>
+                                सिस्टम अपडेट उपलब्ध
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-center" href="#">सभी सूचनाएं देखें</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div class="content-wrapper">
+            <% if (flash && flash.success) { %>
+                <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                    <i class="fas fa-check-circle me-2"></i><%= flash.success %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>
+
+            <% if (flash && flash.error) { %>
+                <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i><%= flash.error %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <% } %>

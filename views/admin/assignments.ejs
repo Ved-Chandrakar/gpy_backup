@@ -1,0 +1,305 @@
+<%- include('../partials/header') %>
+
+<!-- Page Header -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-tasks text-info me-2"></i>
+        पौधा आवंटन प्रबंधन
+    </h1>
+    <div class="d-sm-flex align-items-center">
+        <span class="badge bg-info-soft text-info me-2">
+            <i class="fas fa-list me-1"></i>
+            कुल <%= totalAssignments %> आवंटन
+        </span>
+        <a href="#" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>नया आवंटन
+        </a>
+    </div>
+</div>
+
+<!-- Search and Filter Card -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter me-2"></i>
+            खोज और फिल्टर
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">माता या पौधे का नाम</label>
+                <input type="text" class="form-control" name="search" placeholder="खोजें..." value="<%= req.query.search || '' %>">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">पौधे की श्रेणी</label>
+                <select name="plant_category" class="form-select">
+                    <option value="">सभी पौधे</option>
+                    <option value="fruit" <%= req.query.plant_category === 'fruit' ? 'selected' : '' %>>फल</option>
+                    <option value="flower" <%= req.query.plant_category === 'flower' ? 'selected' : '' %>>फूल</option>
+                    <option value="medicinal" <%= req.query.plant_category === 'medicinal' ? 'selected' : '' %>>औषधीय</option>
+                    <option value="timber" <%= req.query.plant_category === 'timber' ? 'selected' : '' %>>लकड़ी</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i>खोजें
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="avatar-lg bg-primary bg-soft text-primary rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h2 class="h3 mb-1 font-weight-bold text-dark"><%= totalAssignments %></h2>
+                        <p class="text-muted mb-0">कुल आवंटन</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="avatar-lg bg-success bg-soft text-success rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-seedling fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h2 class="h3 mb-1 font-weight-bold text-dark"><%= originalAssignments ? originalAssignments.filter(a => a.status === 'active').length : 0 %></h2>
+                        <p class="text-muted mb-0">सक्रिय आवंटन</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="avatar-lg bg-info bg-soft text-info rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h2 class="h3 mb-1 font-weight-bold text-dark"><%= assignments.length %></h2>
+                        <p class="text-muted mb-0">हितग्राही माताएं</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="avatar-lg bg-warning bg-soft text-warning rounded-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-leaf fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h2 class="h3 mb-1 font-weight-bold text-dark"><%= originalAssignments ? [...new Set(originalAssignments.filter(a => a.plant).map(a => a.plant.name))].length : 0 %></h2>
+                        <p class="text-muted mb-0">अलग-अलग पौधे</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignments Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-table me-2"></i>
+            आवंटन सूची
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="assignmentsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>माता का नाम</th>
+                        <th>पौधे (नाम, मात्रा, स्थिति)</th>
+                        <th>अस्पताल</th>
+                        <th>कार्य</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (assignments && assignments.length > 0) { %>
+                        <% assignments.forEach((group, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td>
+                                    <div>
+                                        <strong class="text-dark"><%= group.mother_name %></strong>
+                                        <br><small class="text-muted">
+                                            <i class="fas fa-child me-1"></i>
+                                            <%= group.child ? (group.child.child_order === 'first' ? 'पहला बच्चा' : 
+                                                              group.child.child_order === 'second' ? 'दूसरा बच्चा' : 
+                                                              group.child.child_order === 'third' ? 'तीसरा बच्चा' : 
+                                                              group.child.child_order === 'fourth' ? 'चौथा बच्चा' : 
+                                                              group.child.child_order) : 'बच्चे की जानकारी नहीं' %>
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <% group.plants.forEach(plant => { %>
+                                            <div class="mb-2">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <strong class="text-dark me-2"><%= plant.name %></strong>
+                                                    <span class="badge bg-<%= plant.category === 'fruit' ? 'success' : 
+                                                                                plant.category === 'flower' ? 'danger' : 
+                                                                                plant.category === 'medicinal' ? 'warning' : 'info' %> me-1">
+                                                        <%= plant.category === 'fruit' ? 'फल' : 
+                                                            plant.category === 'flower' ? 'फूल' : 
+                                                            plant.category === 'medicinal' ? 'औषधीय' : 
+                                                            plant.category === 'timber' ? 'लकड़ी' : plant.category %>
+                                                    </span>
+                                                </div>
+                                                <div class="d-flex align-items-center">
+                                                    <small class="text-muted me-2">
+                                                        <i class="fas fa-seedling me-1"></i>
+                                                        मात्रा: <%= plant.quantity %> पौधे
+                                                    </small>
+                                                    <span class="badge bg-<%= plant.status === 'good' ? 'success' : 
+                                                                               plant.status === 'active' ? 'success' : 
+                                                                               plant.status === 'completed' ? 'primary' : 
+                                                                               plant.status === 'bad' ? 'warning' :
+                                                                               plant.status === 'died' ? 'danger' : 'secondary' %>">
+                                                        <%= plant.status === 'good' ? 'अच्छी स्थिति' : 
+                                                            plant.status === 'active' ? 'सक्रिय' : 
+                                                            plant.status === 'completed' ? 'पूर्ण' : 
+                                                            plant.status === 'bad' ? 'खराब स्थिति' :
+                                                            plant.status === 'died' ? 'मृत' : plant.status %>
+                                                    </span>
+                                                </div>
+                                                <small class="text-muted d-block">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    <%= new Date(plant.assigned_date).toLocaleDateString('hi-IN') %>
+                                                </small>
+                                            </div>
+                                            <% if (group.plants.indexOf(plant) < group.plants.length - 1) { %>
+                                                <hr class="my-2 w-100">
+                                            <% } %>
+                                        <% }); %>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top">
+                                        <strong class="text-primary">
+                                            <i class="fas fa-calculator me-1"></i>
+                                            कुल मात्रा: <%= group.total_quantity %> पौधे
+                                        </strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-hospital me-2 text-primary"></i>
+                                        <span class="text-dark"><%= group.hospital_name %></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <% if (group.assignments && group.assignments.length > 0) { %>
+                                            <a href="/admin/photos?assignment_id=<%= group.assignments[0].id %>" class="btn btn-sm btn-outline-info" title="फोटो देखें">
+                                                <i class="fas fa-camera"></i>
+                                            </a>
+                                            <a href="/admin/children/<%= group.child.id %>/tracking" class="btn btn-sm btn-outline-primary" title="ट्रैकिंग देखें">
+                                                <i class="fas fa-chart-line"></i>
+                                            </a>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">कोई आवंटन नहीं मिला</p>
+                            </td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<% if (totalPages > 1) { %>
+    <div class="d-flex justify-content-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>">पिछला</a>
+                    </li>
+                <% } %>
+                
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>">अगला</a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+<% } %>
+
+<style>
+.avatar-lg {
+    width: 3.5rem;
+    height: 3.5rem;
+}
+
+.bg-soft {
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+}
+
+.bg-primary.bg-soft {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.bg-success.bg-soft {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.bg-info.bg-soft {
+    background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+.bg-warning.bg-soft {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.rounded-3 {
+    border-radius: 0.375rem !important;
+}
+</style>
+
+<%- include('../partials/footer') %>

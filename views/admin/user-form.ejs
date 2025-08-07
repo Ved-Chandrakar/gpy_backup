@@ -1,0 +1,387 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-<%= isEdit ? 'edit' : 'plus' %> text-primary me-2"></i>
+                        <%= isEdit ? 'उपयोगकर्ता संपादित करें' : 'नया उपयोगकर्ता' %>
+                    </h1>
+                    <p class="text-muted">
+                        <%= isEdit ? 'उपयोगकर्ता की जानकारी को अपडेट करें' : 'नया उपयोगकर्ता खाता बनाएं' %>
+                    </p>
+                </div>
+                <div>
+                    <a href="/admin/users" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        वापस जाएं
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        उपयोगकर्ता विवरण
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="<%= isEdit ? '/admin/users/' + formUser.id + '/edit' : '/admin/users/new' %>" class="needs-validation" novalidate>
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        नाम <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="<%= formUser ? formUser.name : '' %>" required>
+                                    <div class="invalid-feedback">
+                                        कृपया नाम दर्ज करें
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mobile" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>
+                                        मोबाइल नंबर <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="tel" class="form-control" id="mobile" name="mobile" 
+                                           pattern="[0-9]{10}" value="<%= formUser ? formUser.mobile : '' %>" required>
+                                    <div class="invalid-feedback">
+                                        कृपया वैध मोबाइल नंबर दर्ज करें (10 अंक)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        ईमेल
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="<%= formUser ? formUser.email : '' %>">
+                                    <div class="invalid-feedback">
+                                        कृपया वैध ईमेल पता दर्ज करें
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="role_id" class="form-label">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        भूमिका <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="role_id" name="role_id" required>
+                                        <option value="">भूमिका चुनें</option>
+                                        <% roles.forEach(role => { %>
+                                            <option value="<%= role.id %>" 
+                                                    <%= formUser && formUser.role_id == role.id ? 'selected' : '' %>>
+                                                <%= role.name === 'district' || role.name === 'collector' ? 'जिला स्तरीय' : 
+                                                    role.name === 'hospital' ? 'अस्पताल' : 
+                                                    role.name === 'mitanin' ? 'मितानिन' : role.name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        कृपया भूमिका चुनें
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Information -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="district_id" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        जिला
+                                    </label>
+                                    <select class="form-select" id="district_id" name="district_id">
+                                        <option value="">जिला चुनें</option>
+                                        <% districts.forEach(district => { %>
+                                            <option value="<%= district.lgd_district_code %>" 
+                                                    <%= (district.lgd_district_code == 387) ? 'selected' : '' %>>
+                                                <%= district.district_name %>
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="block_id" class="form-label">
+                                        <i class="fas fa-map me-1"></i>
+                                        ब्लॉक
+                                    </label>
+                                    <select class="form-select" id="block_id" name="block_id">
+                                        <option value="">ब्लॉक चुनें</option>
+                                        <% if (blocks && blocks.length > 0) { %>
+                                            <% blocks.forEach(block => { %>                                <option value="<%= block.lgd_block_code %>" 
+                                        <%= formUser && formUser.block_id == block.lgd_block_code ? 'selected' : '' %>>
+                                    <%= block.block_name %>
+                                </option>
+                                            <% }); %>
+                                        <% } %>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6" id="hospital_name_field" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="hospital_name" class="form-label">
+                                        <i class="fas fa-hospital me-1"></i>
+                                        अस्पताल का नाम
+                                    </label>
+                                    <input type="text" class="form-control" id="hospital_name" name="hospital_name" 
+                                           value="<%= formUser ? formUser.hospital_name : '' %>">
+                                </div>
+                            </div>
+
+                            <!-- Password Section -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-lock me-2"></i>
+                                    पासवर्ड सेटिंग्स
+                                </h6>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">
+                                        <i class="fas fa-key me-1"></i>
+                                        पासवर्ड <% if (!isEdit) { %><span class="text-danger">*</span><% } %>
+                                    </label>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           <%= !isEdit ? 'required' : '' %> minlength="6">
+                                    <div class="form-text">
+                                        <% if (isEdit) { %>
+                                            खाली छोड़ें यदि पासवर्ड नहीं बदलना है
+                                        <% } else { %>
+                                            कम से कम 6 अक्षर का पासवर्ड दर्ज करें
+                                        <% } %>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        कृपया कम से कम 6 अक्षर का पासवर्ड दर्ज करें
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">
+                                        <i class="fas fa-key me-1"></i>
+                                        पासवर्ड पुष्टि <% if (!isEdit) { %><span class="text-danger">*</span><% } %>
+                                    </label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                           <%= !isEdit ? 'required' : '' %> minlength="6">
+                                    <div class="invalid-feedback">
+                                        पासवर्ड मेल नहीं खाता
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status Section (Edit Only) -->
+                            <% if (isEdit) { %>
+                                <div class="col-12">
+                                    <hr class="my-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-toggle-on me-2"></i>
+                                        खाता स्थिति
+                                    </h6>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                                   <%= formUser && formUser.is_active ? 'checked' : (!isEdit ? 'checked' : '') %>>
+                                            <label class="form-check-label" for="is_active">
+                                                <i class="fas fa-user-check me-1"></i>
+                                                खाता सक्रिय है
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            निष्क्रिय उपयोगकर्ता लॉगिन नहीं कर सकते
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/admin/users" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-1"></i>
+                                        रद्द करें
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-<%= isEdit ? 'save' : 'plus' %> me-1"></i>
+                                        <%= isEdit ? 'अपडेट करें' : 'बनाएं' %>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('role_id');
+    const hospitalNameField = document.getElementById('hospital_name_field');
+    const districtSelect = document.getElementById('district_id');
+    const blockSelect = document.getElementById('block_id');
+    const passwordField = document.getElementById('password');
+    const confirmPasswordField = document.getElementById('confirm_password');
+
+    // Show/hide hospital name field based on role
+    function toggleHospitalField() {
+        const selectedRole = roleSelect.options[roleSelect.selectedIndex].text;
+        if (selectedRole.includes('अस्पताल')) {
+            hospitalNameField.style.display = 'block';
+            document.getElementById('hospital_name').setAttribute('required', 'required');
+        } else {
+            hospitalNameField.style.display = 'none';
+            document.getElementById('hospital_name').removeAttribute('required');
+            document.getElementById('hospital_name').value = '';
+        }
+    }
+
+    // Load blocks based on selected district
+    function loadBlocks(districtId) {
+        if (!districtId) {
+            blockSelect.innerHTML = '<option value="">पहले जिला चुनें</option>';
+            return;
+        }
+
+        // If district is 387 and blocks are already loaded, don't make API call
+        if (districtId == '387' && blockSelect.options.length > 1) {
+            return;
+        }
+
+        blockSelect.innerHTML = '<option value="">लोड हो रहा है...</option>';
+        
+        fetch(`/admin/api/blocks?district_id=${districtId}`)
+            .then(response => response.json())
+            .then(data => {
+                blockSelect.innerHTML = '<option value="">ब्लॉक चुनें</option>';
+                data.blocks.forEach(block => {
+                    const option = document.createElement('option');
+                    option.value = block.lgd_block_code;
+                    option.textContent = block.block_name;
+                    blockSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading blocks:', error);
+                blockSelect.innerHTML = '<option value="">ब्लॉक लोड करने में त्रुटि</option>';
+            });
+    }
+
+    // Password confirmation validation
+    function validatePassword() {
+        if (passwordField.value !== confirmPasswordField.value) {
+            confirmPasswordField.setCustomValidity('पासवर्ड मेल नहीं खाता');
+        } else {
+            confirmPasswordField.setCustomValidity('');
+        }
+    }
+
+    // Event listeners
+    roleSelect.addEventListener('change', toggleHospitalField);
+    districtSelect.addEventListener('change', function() {
+        loadBlocks(this.value);
+    });
+    passwordField.addEventListener('input', validatePassword);
+    confirmPasswordField.addEventListener('input', validatePassword);
+
+    // Initialize hospital field visibility
+    toggleHospitalField();
+    
+    // Always ensure district 387 (Raipur) is selected
+    districtSelect.value = '387';
+    
+    // For edit mode, the block should already be pre-selected via EJS template
+    // For new mode, blocks are already loaded and available for selection
+
+    // Form validation
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Mobile number validation
+    const mobileInput = document.getElementById('mobile');
+    mobileInput.addEventListener('input', function() {
+        const value = this.value.replace(/\D/g, '');
+        this.value = value.slice(0, 10);
+    });
+});
+</script>
+
+<style>
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+    padding: 0.6rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.invalid-feedback {
+    font-size: 0.875rem;
+}
+
+.form-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+</style>
+
+<%- include('../partials/footer') %>

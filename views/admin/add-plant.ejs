@@ -1,0 +1,100 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-plus text-success me-2"></i>
+                        नया पौधा जोड़ें
+                    </h1>
+                    <p class="text-muted">पौधे की जानकारी भरें</p>
+                </div>
+                <div>
+                    <a href="/admin/plants" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>वापस जाएं
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Plant Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-seedling me-2"></i>
+                        पौधे की जानकारी
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/plants/add" method="POST" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">पौधे का नाम *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="species" class="form-label">वैज्ञानिक नाम *</label>
+                                <input type="text" class="form-control" id="species" name="species" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="local_name" class="form-label">स्थानीय नाम</label>
+                                <input type="text" class="form-control" id="local_name" name="local_name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">श्रेणी *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">श्रेणी चुनें</option>
+                                    <option value="fruit">फल</option>
+                                    <option value="flower">फूल</option>
+                                    <option value="medicinal">औषधीय</option>
+                                    <option value="timber">लकड़ी</option>
+                                    <option value="other">अन्य</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="growth_period_months" class="form-label">वृद्धि अवधि (महीने)</label>
+                                <input type="number" class="form-control" id="growth_period_months" name="growth_period_months" value="12" min="1" max="120">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="plant_image" class="form-label">पौधे की छवि</label>
+                                <input type="file" class="form-control" id="plant_image" name="plant_image" accept="image/*">
+                                <div class="form-text">केवल छवि फाइलें (JPG, PNG, GIF) स्वीकार की जाती हैं</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">विवरण</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="पौधे का विवरण..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="care_instructions" class="form-label">देखभाल की निर्देश</label>
+                            <textarea class="form-control" id="care_instructions" name="care_instructions" rows="4" placeholder="पौधे की देखभाल के लिए निर्देश..."></textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="/admin/plants" class="btn btn-secondary me-2">रद्द करें</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

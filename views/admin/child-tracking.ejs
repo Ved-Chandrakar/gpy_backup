@@ -1,0 +1,410 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-seedling text-success me-2"></i>
+                        पौधा विकास ट्रैकिंग
+                    </h1>
+                    <p class="text-muted">
+                        <i class="fas fa-leaf text-success me-1"></i>
+                        बच्चे ID: <strong><%= child.id %></strong> - 
+                        <i class="fas fa-female text-primary me-1"></i>
+                        <strong><%= child.mother_name %></strong> के पौधों की निगरानी
+                    </p>
+                </div>
+                <div>
+                    <a href="/admin/children" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        सभी बच्चे
+                    </a>
+                    <a href="/admin/children/<%= child.id %>" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>
+                        बच्चे का विवरण
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-seedling fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1"><%= trackingData ? trackingData.length : 0 %></h4>
+                    <p class="text-muted mb-0">कुल पौधे</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">
+                        <%= trackingData ? trackingData.filter(d => d.assignment.status === 'active').length : 0 %>
+                    </h4>
+                    <p class="text-muted mb-0">सक्रिय पौधे</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-camera fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">
+                        <%= trackingData ? trackingData.reduce((sum, d) => sum + d.totalPhotos, 0) : 0 %>
+                    </h4>
+                    <p class="text-muted mb-0">कुल फोटो</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">
+                        <% 
+                        let completedWeeks = 0;
+                        if (trackingData) {
+                            trackingData.forEach(d => {
+                                Object.values(d.monthlyData).forEach(weeks => {
+                                    completedWeeks += weeks.filter(w => w.upload_status === 'completed').length;
+                                });
+                            });
+                        }
+                        %>
+                        <%= completedWeeks %>
+                    </h4>
+                    <p class="text-muted mb-0">पूर्ण सप्ताह</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plant Assignments -->
+    <% if (trackingData && trackingData.length > 0) { %>
+        <% trackingData.forEach((data, index) => { %>
+            <div class="card mb-4 border-0 shadow">
+                <div class="card-header bg-gradient-success text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tree me-2"></i>
+                                <% if (data.assignment.plant) { %>
+                                    <strong><%= data.assignment.plant.name %></strong>
+                                <% } else { %>
+                                    पौधा #<%= index + 1 %>
+                                <% } %>
+                            </h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="badge bg-<%= data.assignment.status === 'active' ? 'light' : data.assignment.status === 'completed' ? 'primary' : data.assignment.status === 'replaced' ? 'warning' : 'danger' %> fs-6 me-2">
+                                <% if (data.assignment.status === 'active') { %>
+                                    <i class="fas fa-play-circle me-1"></i>सक्रिय
+                                <% } else if (data.assignment.status === 'completed') { %>
+                                    <i class="fas fa-check-circle me-1"></i>पूर्ण
+                                <% } else if (data.assignment.status === 'replaced') { %>
+                                    <i class="fas fa-exchange-alt me-1"></i>बदला गया
+                                <% } else if (data.assignment.status === 'dead') { %>
+                                    <i class="fas fa-times-circle me-1"></i>मृत
+                                <% } %>
+                            </span>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-camera me-1"></i><%= data.totalPhotos %> फोटो
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Plant Assignment Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong>निर्धारित तिथि:</strong>
+                            <p class="mb-0 text-primary">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                <%= new Date(data.assignment.assigned_date).toLocaleDateString('hi-IN') %>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>पौधे का नाम:</strong>
+                            <p class="mb-0 text-success">
+                                <i class="fas fa-seedling me-1"></i>
+                                <%= data.assignment.plant ? data.assignment.plant.name : 'अनुपलब्ध' %>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Tracking Progress -->
+                    <% if (Object.keys(data.monthlyData).length > 0) { %>
+                        <h6 class="mb-3">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            मासिक विकास ट्रैकिंग प्रगति
+                        </h6>
+                        <div class="row">
+                            <% Object.keys(data.monthlyData).sort().forEach(monthNumber => { %>
+                                <div class="col-lg-4 mb-4">
+                                    <div class="card border-primary h-100">
+                                        <div class="card-header bg-primary text-white">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    महीना <%= monthNumber %>
+                                                </h6>
+                                                <small>
+                                                    <%= data.monthlyData[monthNumber].filter(s => s.upload_status === 'completed').length %>/<%= data.monthlyData[monthNumber].length %> पूर्ण
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <% data.monthlyData[monthNumber].forEach(schedule => { %>
+                                                <div class="mb-3 p-3 border rounded position-relative <%= schedule.upload_status === 'completed' ? 'bg-light-success' : schedule.upload_status === 'overdue' ? 'bg-light-danger' : 'bg-light-warning' %>">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <strong class="d-block">सप्ताह <%= schedule.week_number %></strong>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-calendar-check me-1"></i>
+                                                                <%= new Date(schedule.due_date).toLocaleDateString('hi-IN') %>
+                                                            </small>
+                                                        </div>
+                                                        <div>
+                                                            <% if (schedule.upload_status === 'completed') { %>
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check"></i> पूर्ण
+                                                                </span>
+                                                            <% } else if (schedule.upload_status === 'overdue') { %>
+                                                                <span class="badge bg-danger">
+                                                                    <i class="fas fa-exclamation-triangle"></i> विलंबित
+                                                                </span>
+                                                            <% } else { %>
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <i class="fas fa-clock"></i> लंबित
+                                                                </span>
+                                                            <% } %>
+                                                        </div>
+                                                    </div>
+                                                    <% if (schedule.photo) { %>
+                                                        <div class="text-center">
+                                                            <img src="<%= 
+                                                                schedule.photo.photo_url && schedule.photo.photo_url.startsWith('http') ? schedule.photo.photo_url : 
+                                                                schedule.photo.photo_url && schedule.photo.photo_url.startsWith('/') ? schedule.photo.photo_url : 
+                                                                schedule.photo.photo_url ? '/' + schedule.photo.photo_url : '/images/placeholder-plant.jpg'
+                                                            %>" 
+                                                                 alt="Plant Photo Week <%= schedule.week_number %>" 
+                                                                 class="img-thumbnail rounded shadow-sm" 
+                                                                 style="max-width: 100px; max-height: 100px; object-fit: cover;"
+                                                                 onerror="this.src='/images/placeholder-plant.jpg'">
+                                                            <% if (schedule.photo.is_verified !== null && schedule.photo.is_verified !== undefined) { %>
+                                                                <div class="mt-1">
+                                                                    <span class="badge bg-<%= schedule.photo.is_verified ? 'success' : 'danger' %> badge-sm">
+                                                                        <% if (schedule.photo.is_verified) { %>
+                                                                            <i class="fas fa-check-circle me-1"></i>सत्यापित
+                                                                        <% } else { %>
+                                                                            <i class="fas fa-times-circle me-1"></i>अस्वीकृत
+                                                                        <% } %>
+                                                                    </span>
+                                                                </div>
+                                                            <% } else { %>
+                                                                <div class="mt-1">
+                                                                    <span class="badge bg-secondary badge-sm">
+                                                                        <i class="fas fa-clock me-1"></i>सत्यापन लंबित
+                                                                    </span>
+                                                                </div>
+                                                            <% } %>
+                                                        </div>
+                                                    <% } else { %>
+                                                        <div class="text-center p-3">
+                                                            <i class="fas fa-camera fa-2x text-muted"></i>
+                                                            <p class="text-muted mb-0 small">फोटो लंबित</p>
+                                                        </div>
+                                                    <% } %>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            अभी तक कोई ट्रैकिंग शेड्यूल उपलब्ध नहीं है।
+                        </div>
+                    <% } %>
+
+                    <!-- Recent Photos Gallery -->
+                    <% if (data.assignment.photos && data.assignment.photos.length > 0) { %>
+                        <h6 class="mt-4 mb-3">
+                            <i class="fas fa-images text-info me-2"></i>
+                            हाल की फोटो गैलरी
+                            <span class="badge bg-info ms-2"><%= data.assignment.photos.length %> कुल</span>
+                        </h6>
+                        <div class="row">
+                            <% data.assignment.photos.slice(0, 8).forEach((photo, photoIndex) => { %>
+                                <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="position-relative">
+                                            <img src="<%= 
+                                                photo.photo_url && photo.photo_url.startsWith('http') ? photo.photo_url : 
+                                                photo.photo_url && photo.photo_url.startsWith('/') ? photo.photo_url : 
+                                                photo.photo_url ? '/' + photo.photo_url : '/images/placeholder-plant.jpg'
+                                            %>" 
+                                                 alt="Plant Photo <%= photoIndex + 1 %>" 
+                                                 class="card-img-top" 
+                                                 style="height: 150px; object-fit: cover;"
+                                                 onerror="this.src='/images/placeholder-plant.jpg'">
+                                            <% if (photo.is_verified !== null && photo.is_verified !== undefined) { %>
+                                                <div class="position-absolute top-0 end-0 m-2">
+                                                    <span class="badge bg-<%= photo.is_verified ? 'success' : 'danger' %>">
+                                                        <% if (photo.is_verified) { %>
+                                                            <i class="fas fa-check-circle"></i>
+                                                        <% } else { %>
+                                                            <i class="fas fa-times-circle"></i>
+                                                        <% } %>
+                                                    </span>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="position-absolute top-0 end-0 m-2">
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-clock"></i>
+                                                    </span>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <%= new Date(photo.created_at).toLocaleDateString('hi-IN') %>
+                                            </small>
+                                            <% if (photo.is_verified !== null && photo.is_verified !== undefined) { %>
+                                                <small class="d-block mt-1">
+                                                    <span class="badge bg-<%= photo.is_verified ? 'success' : 'danger' %> badge-sm">
+                                                        <% if (photo.is_verified) { %>
+                                                            सत्यापित
+                                                        <% } else { %>
+                                                            अस्वीकृत
+                                                        <% } %>
+                                                    </span>
+                                                </small>
+                                            <% } else { %>
+                                                <small class="d-block mt-1">
+                                                    <span class="badge bg-warning badge-sm">
+                                                        लंबित
+                                                    </span>
+                                                </small>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                        <% if (data.assignment.photos.length > 8) { %>
+                            <div class="text-center mt-3">
+                                <a href="/admin/photos?child_id=<%= child.id %>&assignment_id=<%= data.assignment.id %>" class="btn btn-outline-primary">
+                                    <i class="fas fa-images me-1"></i>
+                                    सभी फोटो देखें (<%= data.assignment.photos.length %>)
+                                </a>
+                            </div>
+                        <% } %>
+                    <% } else { %>
+                        <div class="alert alert-warning border-0 shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-camera fa-2x text-warning me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1">कोई फोटो उपलब्ध नहीं</h6>
+                                    <p class="mb-0">अभी तक इस पौधे की कोई फोटो अपलोड नहीं की गई है।</p>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <!-- No Plants Assigned -->
+        <div class="card border-0 shadow">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-seedling fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">कोई पौधा निर्धारित नहीं</h4>
+                <p class="text-muted mb-4">
+                    इस बच्चे के लिए अभी तक कोई पौधा निर्धारित नहीं किया गया है।<br>
+                    पौधा निर्धारित करने के लिए नीचे दिए गए बटन पर क्लिक करें।
+                </p>
+                <a href="/admin/assignments/new?child_id=<%= child.id %>" class="btn btn-success btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    पहला पौधा निर्धारित करें
+                </a>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Quick Actions -->
+    <div class="card border-0 shadow mt-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">
+                <i class="fas fa-tools text-primary me-2"></i>
+                त्वरित कार्य
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3 mb-3">
+                    <a href="/admin/children/<%= child.id %>" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-user fa-2x d-block mb-2"></i>
+                        बच्चे का विवरण
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/admin/assignments/new?child_id=<%= child.id %>" class="btn btn-outline-success w-100">
+                        <i class="fas fa-plus fa-2x d-block mb-2"></i>
+                        नया पौधा निर्धारित करें
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/admin/photos?child_id=<%= child.id %>" class="btn btn-outline-info w-100">
+                        <i class="fas fa-images fa-2x d-block mb-2"></i>
+                        सभी फोटो देखें
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/admin/children" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left fa-2x d-block mb-2"></i>
+                        सभी बच्चे
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-light-success {
+    background-color: #d1e7dd !important;
+}
+.bg-light-danger {
+    background-color: #f8d7da !important;
+}
+.bg-light-warning {
+    background-color: #fff3cd !important;
+}
+.bg-gradient-success {
+    background: linear-gradient(45deg, #198754, #20c997) !important;
+}
+</style>
+
+<%- include('../partials/footer') %>

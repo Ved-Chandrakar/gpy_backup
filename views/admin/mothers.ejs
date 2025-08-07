@@ -1,0 +1,249 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-female text-success me-2"></i>
+                        माता प्रबंधन
+                    </h1>
+                    <p class="text-muted">कुल <%= totalMothers %> माताएं पंजीकृत</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="search" placeholder="माता या बच्चे का नाम खोजें..." value="<%= req.query.search || '' %>">
+                </div>
+                <div class="col-md-3">
+                    <select name="block" class="form-select">
+                        <option value="">सभी ब्लॉक</option>
+                        <% if (blocks && blocks.length > 0) { %>
+                            <% blocks.forEach(block => { %>
+                                <option value="<%= block.block_code %>" <%= req.query.block == block.block_code ? 'selected' : '' %>>
+                                    <%= block.block_name %>
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">सभी स्थिति</option>
+                        <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
+                        <option value="inactive" <%= req.query.status === 'inactive' ? 'selected' : '' %>>निष्क्रिय</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">खोजें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">कुल माताएं</h6>
+                            <h4><%= totalMothers %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-female fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">सक्रिय माताएं</h6>
+                            <h4><%= mothers.filter(m => m.is_active).length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">निष्क्रिय माताएं</h6>
+                            <h4><%= mothers.filter(m => !m.is_active).length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">इस महीने नई</h6>
+                            <h4><%= mothers.filter(m => new Date(m.last_child_entry_date).getMonth() === new Date().getMonth()).length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-plus-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mothers Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">माताओं की सूची</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>माता का नाम</th>
+                            <th>मोबाइल नंबर</th>
+                            <th>बच्चों की संख्या</th>
+                            <th>अंतिम बच्चे की प्रविष्टि</th>
+                            <th>स्थान</th>
+                            <th>स्थिति</th>
+                            <th>कार्य</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (mothers && mothers.length > 0) { %>
+                            <% mothers.forEach(mother => { %>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong><%= mother.mother_name %></strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (mother.mother_mobile) { %>
+                                            <%= mother.mother_mobile %>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/admin/children?mother=<%= encodeURIComponent(mother.mother_name) %>&mobile=<%= encodeURIComponent(mother.mother_mobile || '') %>" 
+                                           class="badge bg-primary text-decoration-none" 
+                                           title="इस माता के बच्चे देखें">
+                                            <%= mother.child_count %> बच्चे
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <%= new Date(mother.last_child_entry_date).toLocaleDateString('hi-IN') %>
+                                            <% if (mother.last_child_order || mother.last_child_gender) { %>
+                                                <br>
+                                                <% if (mother.last_child_order) { %>
+                                                    <span class="badge bg-info me-1">
+                                                        <% if (mother.last_child_order === 'first') { %>
+                                                            पहला बच्चा
+                                                        <% } else if (mother.last_child_order === 'second') { %>
+                                                            दूसरा बच्चा
+                                                        <% } else if (mother.last_child_order === 'third') { %>
+                                                            तीसरा बच्चा
+                                                        <% } else if (mother.last_child_order === 'fourth') { %>
+                                                            चौथा बच्चा
+                                                        <% } %>
+                                                    </span>
+                                                <% } %>
+                                                <% if (mother.last_child_gender) { %>
+                                                    <span class="badge bg-<%= mother.last_child_gender === 'male' ? 'primary' : 'success' %>">
+                                                        <%= mother.last_child_gender === 'male' ? 'पुत्र' : 'पुत्री' %>
+                                                    </span>
+                                                <% } %>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (mother.block_name) { %>
+                                            <%= mother.block_name %>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<%= mother.is_active ? 'success' : 'secondary' %>">
+                                            <%= mother.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="/admin/children?mother=<%= encodeURIComponent(mother.mother_name) %>&mobile=<%= encodeURIComponent(mother.mother_mobile || '') %>" 
+                                               class="btn btn-sm btn-outline-primary" title="बच्चे देखें">
+                                                <i class="fas fa-baby"></i>
+                                            </a>
+                                            <a href="/admin/mothers/<%= encodeURIComponent(mother.mother_mobile) %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-female fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">कोई माता नहीं मिली</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>">पिछला</a>
+                    </li>
+                <% } %>
+                
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>">अगला</a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

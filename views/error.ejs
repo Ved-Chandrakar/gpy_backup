@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-4"></i>
+                    <h3 class="card-title">ओह! कुछ गलत हुआ है</h3>
+                    <p class="card-text text-muted">
+                        <%= message || 'एक अप्रत्याशित त्रुटि हुई है। कृपया बाद में पुनः प्रयास करें।' %>
+                    </p>
+                    <div class="mt-4">
+                        <a href="/admin/dashboard" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-2"></i>डैशबोर्ड पर वापस जाएं
+                        </a>
+                        <button onclick="history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>पिछले पेज पर जाएं
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,279 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-baby text-primary me-2"></i>
+                        <%= title %>
+                    </h1>
+                    <% if (filterMother) { %>
+                        <p class="text-muted">
+                            <%= filterMother %> की <%= totalChildren %> संतान
+                            <a href="/admin/children" class="btn btn-sm btn-outline-secondary ms-2">सभी बच्चे देखें</a>
+                        </p>
+                    <% } else { %>
+                        <p class="text-muted">कुल <%= totalChildren %> बच्चे पंजीकृत</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="search" placeholder="बच्चे या माता का नाम खोजें..." value="<%= req.query.search || '' %>">
+                </div>
+                <div class="col-md-3">
+                    <select name="block" class="form-select">
+                        <option value="">सभी ब्लॉक</option>
+                        <% if (blocks && blocks.length > 0) { %>
+                            <% blocks.forEach(block => { %>
+                                <option value="<%= block.block_code %>" <%= req.query.block == block.block_code ? 'selected' : '' %>>
+                                    <%= block.block_name %>
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="gender" class="form-select">
+                        <option value="">सभी लिंग</option>
+                        <option value="male" <%= req.query.gender === 'male' ? 'selected' : '' %>>पुत्र</option>
+                        <option value="female" <%= req.query.gender === 'female' ? 'selected' : '' %>>पुत्री</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">सभी स्थिति</option>
+                        <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
+                        <option value="inactive" <%= req.query.status === 'inactive' ? 'selected' : '' %>>निष्क्रिय</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">खोजें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">कुल बच्चे</h6>
+                            <h4><%= totalChildren %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-baby fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">पुत्र</h6>
+                            <h4><%= children.filter(c => c.gender === 'male').length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-male fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">पुत्री</h6>
+                            <h4><%= children.filter(c => c.gender === 'female').length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-female fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">इस महीने नए</h6>
+                            <h4><%= children.filter(c => new Date(c.created_at).getMonth() === new Date().getMonth()).length %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-plus-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Children Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">बच्चों की सूची</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>अस्पताल का नाम</th>
+                            <th>माता का नाम</th>
+                            <th>लिंग</th>
+                            <th>जन्म तिथि</th>
+                            <th>बच्चे का क्रम</th>
+                            <th>ब्लॉक</th>
+                            <th>प्रसव प्रकार</th>
+                            <th>स्थिति</th>
+                            <th>कार्य</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (children && children.length > 0) { %>
+                            <% children.forEach(child => { %>
+                                <tr>
+                                    <td><%= child.id %></td>
+                                    <td>
+                                        <div>
+                                            <% if (child.hospital) { %>
+                                                <strong><%= child.hospital.name %></strong>
+                                            <% } else { %>
+                                                <span class="text-muted">अनुपलब्ध</span>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong><%= child.mother_name %></strong>
+                                            <% if (child.mother_mobile) { %>
+                                                <br><small class="text-muted"><%= child.mother_mobile %></small>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<%= child.gender === 'male' ? 'primary' : 'success' %>">
+                                            <%= child.gender === 'male' ? 'पुत्र' : 'पुत्री' %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(child.dob).toLocaleDateString('hi-IN') %></td>
+                                    <td>
+                                        <% if (child.child_order) { %>
+                                            <span class="badge bg-info">
+                                                <% if (child.child_order === 'first') { %>
+                                                    पहला बच्चा
+                                                <% } else if (child.child_order === 'second') { %>
+                                                    दूसरा बच्चा
+                                                <% } else if (child.child_order === 'third') { %>
+                                                    तीसरा बच्चा
+                                                <% } else if (child.child_order === 'fourth') { %>
+                                                    चौथा बच्चा
+                                                <% } %>
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (child.block) { %>
+                                            <%= child.block.block_name %>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (child.delivery_type) { %>
+                                            <span class="badge bg-<%= child.delivery_type === 'normal' ? 'success' : child.delivery_type === 'cesarean' ? 'warning' : 'info' %>">
+                                                <% if (child.delivery_type === 'normal') { %>
+                                                    सामान्य प्रसव
+                                                <% } else if (child.delivery_type === 'cesarean') { %>
+                                                    सिजेरियन
+                                                <% } else if (child.delivery_type === 'assisted') { %>
+                                                    सहायक प्रसव
+                                                <% } %>
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<%= child.is_active ? 'success' : 'secondary' %>">
+                                            <%= child.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="/admin/children/<%= child.id %>" class="btn btn-sm btn-outline-primary" title="विवरण देखें">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="/admin/children/<%= child.id %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="/admin/children/<%= child.id %>/tracking" class="btn btn-sm btn-outline-success" title="ट्रैकिंग देखें">
+                                                <i class="fas fa-seedling"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="10" class="text-center py-4">
+                                    <i class="fas fa-baby fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">कोई बच्चा नहीं मिला</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <% if (page > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= page - 1 %>">पिछला</a>
+                    </li>
+                <% } %>
+                
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === page ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <% if (page < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= page + 1 %>">अगला</a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

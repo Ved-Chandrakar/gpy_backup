@@ -1,0 +1,574 @@
+<%- include('../partials/header') %>
+
+<!-- Simplified Page Header -->
+<div class="dashboard-header-simple mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="header-update-info">
+            <span class="text-muted small">अंतिम अपडेट: </span>
+            <span class="fw-bold text-success" id="lastUpdated">
+                <i class="fas fa-clock me-1"></i>
+                <%= new Date().toLocaleDateString('hi-IN') %>
+            </span>
+        </div>
+        <div class="header-actions">
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-success btn-sm shadow-sm" onclick="refreshDashboard()" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    रिफ्रेश करें
+                </button>
+                <button class="btn btn-outline-primary btn-sm shadow-sm" onclick="toggleAutoRefresh()" id="autoRefreshBtn">
+                    <i class="fas fa-play me-1"></i>
+                    ऑटो रिफ्रेश
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Real-time alerts -->
+    <div class="row mt-3" id="realTimeAlerts">
+        <% if (realTimeData.todayRegistrations > 0) { %>
+        <div class="col-md-3">
+            <div class="alert alert-success alert-dismissible fade show py-2">
+                <i class="fas fa-user-plus me-2"></i>
+                <strong><%= realTimeData.todayRegistrations %></strong> नए पंजीकरण आज
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+        <% } %>
+        <% if (realTimeData.pendingVerifications > 0) { %>
+        <div class="col-md-3">
+            <div class="alert alert-warning alert-dismissible fade show py-2">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong><%= realTimeData.pendingVerifications %></strong> फोटो वेरिफिकेशन पेंडिंग
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Enhanced Stats Cards with Moderate Height Reduction -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="enhanced-stats-card mothers-card">
+            <div class="stats-overlay"></div>
+            <div class="stats-content">
+                <div class="stats-header">
+                    <div class="stat-icon-modern">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div class="trend-badge positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span id="mothersGrowth"><%= stats.mothersGrowth >= 0 ? '+' : '' %><%= stats.mothersGrowth || 0 %>%</span>
+                    </div>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-value-modern" id="totalMothers"><%= stats.totalMothers || 0 %></div>
+                    <div class="stat-label-modern">कुल माताएं</div>
+                    <div class="stat-description">
+                        <i class="fas fa-plus-circle me-1"></i>
+                        इस महीने <span id="thisMonthMothers"><%= stats.thisMonthMothers || 0 %></span> नई माताएं जुड़ीं
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <a href="/admin/mothers" class="stats-link">
+                        सभी देखें <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="enhanced-stats-card plants-card">
+            <div class="stats-overlay"></div>
+            <div class="stats-content">
+                <div class="stats-header">
+                    <div class="stat-icon-modern">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="trend-badge positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8%
+                    </div>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-value-modern" id="totalPlants"><%= stats.totalPlants || 0 %></div>
+                    <div class="stat-label-modern">कुल पौधे</div>
+                    <div class="stat-description">
+                        <i class="fas fa-leaf me-1"></i>
+                        <span id="plantsStatus">सभी पौधे स्वस्थ हैं</span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <a href="/admin/plants" class="stats-link">
+                        सभी देखें <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="enhanced-stats-card assignments-card">
+            <div class="stats-overlay"></div>
+            <div class="stats-content">
+                <div class="stats-header">
+                    <div class="stat-icon-modern">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="trend-badge positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +15%
+                    </div>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-value-modern" id="totalAssignments"><%= stats.totalAssignments || 0 %></div>
+                    <div class="stat-label-modern">पौधा निर्धारण</div>
+                    <div class="stat-description">
+                        <i class="fas fa-clock me-1"></i>
+                        <span id="pendingAssignments"><%= stats.pendingAssignments || 0 %></span> पेंडिंग असाइनमेंट
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <a href="/admin/assignments" class="stats-link">
+                        सभी देखें <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="enhanced-stats-card users-card">
+            <div class="stats-overlay"></div>
+            <div class="stats-content">
+                <div class="stats-header">
+                    <div class="stat-icon-modern">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="trend-badge positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +5%
+                    </div>
+                </div>
+                <div class="stats-body">
+                    <div class="stat-value-modern" id="totalUsers"><%= stats.totalUsers || 0 %></div>
+                    <div class="stat-label-modern">कुल उपयोगकर्ता</div>
+                    <div class="stat-description">
+                        <i class="fas fa-user-check me-1"></i>
+                        <span id="activeUsers"><%= stats.activeUsers || 0 %></span> सक्रिय उपयोगकर्ता
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <a href="/admin/users" class="stats-link">
+                        सभी देखें <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Charts Row -->
+<div class="row g-4 mb-5">
+    <div class="col-xl-8 col-lg-7">
+        <div class="modern-card chart-card">
+            <div class="card-header-modern">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="header-content">
+                        <h5 class="card-title-modern mb-1">
+                            <i class="fas fa-chart-line me-2 text-primary"></i>
+                            दैनिक पंजीकरण व पौधा वितरण तुलना
+                        </h5>
+                        <p class="card-subtitle mb-0">पिछले 7 दिनों का तुलनात्मक डेटा</p>
+                    </div>
+                    <div class="chart-controls">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-download me-2"></i>PNG एक्सपोर्ट</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>PDF एक्सपोर्ट</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>विस्तृत रिपोर्ट</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body-modern">
+                <div class="chart-container-enhanced">
+                    <canvas id="dailyComparisonChart"></canvas>
+                </div>
+                <div class="chart-stats mt-3">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-mini">
+                                <div class="stat-mini-value text-success" id="completionRate"><%= stats.assignmentCompletionRate || 0 %>%</div>
+                                <div class="stat-mini-label">पूर्ण</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-mini">
+                                <div class="stat-mini-value text-warning" id="progressRate"><%= Math.max(0, 100 - (stats.assignmentCompletionRate || 0)) %>%</div>
+                                <div class="stat-mini-label">प्रगति में</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-mini">
+                                <div class="stat-mini-value text-info" id="verificationRate"><%= stats.photoVerificationRate || 0 %>%</div>
+                                <div class="stat-mini-label">वेरीफाइड</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-lg-5">
+        <div class="modern-card chart-card">
+            <div class="card-header-modern">
+                <h5 class="card-title-modern mb-1">
+                    <i class="fas fa-chart-pie me-2 text-success"></i>
+                    पौधों की श्रेणी वितरण
+                </h5>
+                <p class="card-subtitle mb-0">कुल पौधों का प्रतिशत</p>
+            </div>
+            <div class="card-body-modern">
+                <div class="chart-container-pie">
+                    <canvas id="plantCategoryChart"></canvas>
+                </div>
+                <div class="category-legend mt-3">
+                    <div class="legend-item">
+                        <span class="legend-dot bg-success"></span>
+                        <span class="legend-text">आम (30%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot bg-info"></span>
+                        <span class="legend-text">अमरुद (25%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot bg-warning"></span>
+                        <span class="legend-text">आंवला (20%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot bg-danger"></span>
+                        <span class="legend-text">पपीता (15%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot bg-primary"></span>
+                        <span class="legend-text">मुनगा (10%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// Enhanced Dashboard JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Enhanced Chart Configuration
+    Chart.defaults.font.family = "'Noto Sans Devanagari', sans-serif";
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    
+    // Daily Comparison Bar Chart
+    if (document.getElementById('dailyComparisonChart')) {
+        const ctx = document.getElementById('dailyComparisonChart').getContext('2d');
+        
+        // Prepare data from server
+        const dailyData = <%- JSON.stringify(monthlyStats || []) %>;
+        const labels = dailyData.map(item => item.date);
+        const registrationData = dailyData.map(item => item.registrations);
+        const assignmentData = dailyData.map(item => item.assignments);
+        
+        window.dailyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'बच्चे पंजीकृत',
+                    data: registrationData,
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 40
+                }, {
+                    label: 'पौधे वितरित',
+                    data: assignmentData,
+                    backgroundColor: 'rgba(23, 162, 184, 0.8)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            title: function(context) {
+                                const index = context[0].dataIndex;
+                                return dailyData[index].day + ' (' + context[0].label + ')';
+                            },
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.formattedValue;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        ticks: {
+                            color: '#6c757d',
+                            font: {
+                                size: 11
+                            },
+                            stepSize: 1
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+    
+    // Enhanced Plant Category Chart
+    if (document.getElementById('plantCategoryChart')) {
+        const ctx = document.getElementById('plantCategoryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['आम', 'अमरुद', 'आंवला', 'पपीता', 'मुनगा'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#28a745',
+                        '#17a2b8',
+                        '#ffc107',
+                        '#dc3545',
+                        '#6f42c1'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000
+                }
+            }
+        });
+    }
+    
+    // Enhanced Stats Cards Animation
+    const statsCards = document.querySelectorAll('.enhanced-stats-card');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 150);
+            }
+        });
+    });
+    
+    statsCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.5s ease';
+        observer.observe(card);
+    });
+    
+    // Activity items animation
+    const activityItems = document.querySelectorAll('.activity-item');
+    activityItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-15px)';
+        setTimeout(() => {
+            item.style.transition = 'all 0.4s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 100);
+    });
+    
+    // Task items animation
+    const taskItems = document.querySelectorAll('.task-item-improved');
+    taskItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(15px)';
+        setTimeout(() => {
+            item.style.transition = 'all 0.4s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 100);
+    });
+    
+    // Refresh Dashboard Function
+    window.refreshDashboard = function() {
+        const refreshBtn = document.querySelector('.header-actions .btn-outline-success');
+        const icon = refreshBtn.querySelector('i');
+        
+        icon.classList.add('spinning');
+        refreshBtn.disabled = true;
+        
+        // Simulate refresh
+        setTimeout(() => {
+            icon.classList.remove('spinning');
+            refreshBtn.disabled = false;
+            
+            // Show success message
+            showNotification('डैशबोर्ड सफलतापूर्वक अपडेट किया गया!', 'success');
+        }, 2000);
+    };
+    
+    // Refresh Activity Function
+    window.refreshActivity = function() {
+        const refreshBtn = document.querySelector('.activity-controls .btn-outline-info');
+        const icon = refreshBtn.querySelector('i');
+        
+        icon.classList.add('spinning');
+        refreshBtn.disabled = true;
+        
+        setTimeout(() => {
+            icon.classList.remove('spinning');
+            refreshBtn.disabled = false;
+            showNotification('गतिविधियां अपडेट की गईं!', 'info');
+        }, 1500);
+    };
+    
+    // Toggle Chart Type Function
+    window.toggleChartType = function() {
+        showNotification('चार्ट प्रकार बदला गया!', 'info');
+    };
+    
+    // Notification Function
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+        `;
+        
+        notification.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+    
+    // Update time display
+    function updateTime() {
+        const timeElement = document.querySelector('.header-stats .fw-bold');
+        if (timeElement) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('hi-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            timeElement.innerHTML = `<i class="fas fa-clock me-1"></i>${timeString}`;
+        }
+    }
+    
+    // Update time every minute
+    setInterval(updateTime, 60000);
+    
+    // Add hover effects to cards
+    const modernCards = document.querySelectorAll('.modern-card, .enhanced-stats-card');
+    modernCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>
