@@ -39,6 +39,7 @@ router.post('/mothers/:mobile/edit', adminController.updateMother);
 
 // Children Management
 router.get('/children', adminController.children);
+router.get('/children/export', adminController.exportChildren);
 router.get('/children/:id', adminController.viewChild);
 router.get('/children/:id/edit', adminController.editChildForm);
 router.post('/children/:id/edit', adminController.updateChild);

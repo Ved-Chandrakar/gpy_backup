@@ -467,6 +467,125 @@ class AdminController {
     }
   }
 
+  // Export Children Data to Excel
+  async exportChildren(req, res) {
+    try {
+      const search = req.query.search || '';
+      const block = req.query.block || '';
+      const gender = req.query.gender || '';
+      const status = req.query.status || '';
+      const mother = req.query.mother || '';
+      const mobile = req.query.mobile || '';
+
+      // Build where conditions for search (same as children method)
+      let searchCondition = '';
+      if (search.trim()) {
+        searchCondition = `AND (c.child_name LIKE '%${search}%' OR c.mother_name LIKE '%${search}%')`;
+      }
+
+      // Build mother filter condition
+      let motherCondition = '';
+      if (mother) {
+        motherCondition = `AND c.mother_name = '${mother}'`;
+        if (mobile) {
+          motherCondition += ` AND c.mother_mobile = '${mobile}'`;
+        }
+      }
+
+      // Build gender filter condition
+      let genderCondition = '';
+      if (gender) {
+        genderCondition = `AND c.gender = '${gender}'`;
+      }
+
+      // Build status filter condition
+      let statusCondition = '';
+      if (status === 'active') {
+        statusCondition = `AND c.is_active = 1`;
+      } else if (status === 'inactive') {
+        statusCondition = `AND c.is_active = 0`;
+      }
+
+      // Build block filter condition
+      let blockCondition = '';
+      if (block) {
+        blockCondition = `AND c.block_code = '${block}'`;
+      } else {
+        blockCondition = `AND b.lgd_district_code = 387`;
+      }
+
+      // Raw SQL query to get all children data for export (no pagination)
+      const childrenQuery = `
+        SELECT 
+          c.id as 'ID',
+          h.hospital_name as 'अस्पताल का नाम',
+          c.mother_name as 'माता का नाम',
+          c.mother_mobile as 'माता का मोबाइल',
+          c.child_name as 'बच्चे का नाम',
+          CASE WHEN c.gender = 'male' THEN 'पुत्र' ELSE 'पुत्री' END as 'लिंग',
+          DATE_FORMAT(c.dob, '%d/%m/%Y') as 'जन्म तिथि',
+          CASE 
+            WHEN c.child_order = 'first' THEN 'पहला बच्चा'
+            WHEN c.child_order = 'second' THEN 'दूसरा बच्चा'
+            WHEN c.child_order = 'third' THEN 'तीसरा बच्चा'
+            WHEN c.child_order = 'fourth' THEN 'चौथा बच्चा'
+            ELSE 'अनुपलब्ध'
+          END as 'बच्चे का क्रम',
+          d.district_name as 'जिला',
+          b.block_name as 'ब्लॉक',
+          v.village_name as 'गांव',
+          CASE 
+            WHEN c.delivery_type = 'normal' THEN 'सामान्य प्रसव'
+            WHEN c.delivery_type = 'cesarean' THEN 'सिजेरियन'
+            WHEN c.delivery_type = 'assisted' THEN 'सहायक प्रसव'
+            ELSE 'अनुपलब्ध'
+          END as 'प्रसव प्रकार',
+          m.name as 'मितानिन का नाम',
+          CASE WHEN c.is_active = 1 THEN 'सक्रिय' ELSE 'निष्क्रिय' END as 'स्थिति',
+          DATE_FORMAT(c.created_at, '%d/%m/%Y %H:%i') as 'प्रविष्टि तिथि'
+        FROM tbl_child c
+        LEFT JOIN tbl_user h ON c.hospital_id = h.id
+        LEFT JOIN tbl_user m ON c.assigned_mitanin_id = m.id  
+        LEFT JOIN master_district d ON c.district_code = d.district_code
+        LEFT JOIN master_block b ON c.block_code = b.block_code
+        LEFT JOIN master_village v ON c.village_code = v.village_code
+        WHERE 1=1 ${searchCondition} ${motherCondition} ${genderCondition} ${statusCondition} ${blockCondition}
+        ORDER BY c.created_at DESC
+      `;
+
+      const [childrenResult] = await dbInstance.query(childrenQuery);
+
+      // Create Excel workbook
+      const XLSX = require('xlsx');
+      const workbook = XLSX.utils.book_new();
+      
+      // Convert data to worksheet
+      const worksheet = XLSX.utils.json_to_sheet(childrenResult);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'बच्चों की सूची');
+
+      // Generate filename with current date
+      const now = new Date();
+      const filename = `Children_Data_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+
+      // Set response headers for file download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Write workbook to response
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Export Children Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'डेटा एक्सपोर्ट करने में त्रुटि हुई'
+      });
+    }
+  }
+
   // Mother Edit Management
   async editMotherForm(req, res) {
     try {

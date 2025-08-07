@@ -19,6 +19,13 @@
                         <p class="text-muted">कुल <%= totalChildren %> बच्चे पंजीकृत</p>
                     <% } %>
                 </div>
+                <div>
+                    <button type="button" class="btn btn-success" onclick="exportData()">
+                        <i class="fas fa-file-excel me-2"></i>
+                        
+एक्सेल निर्यात
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -292,5 +299,23 @@
         </nav>
     <% } %>
 </div>
+
+<script>
+function exportData() {
+    // Get current filter parameters
+    const params = new URLSearchParams(window.location.search);
+    const exportUrl = new URL('/admin/children/export', window.location.origin);
+    
+    // Preserve all current filters
+    for (const [key, value] of params.entries()) {
+        if (key !== 'page') { // Don't include page parameter in export
+            exportUrl.searchParams.set(key, value);
+        }
+    }
+    
+    // Open download in new window
+    window.open(exportUrl.toString(), '_blank');
+}
+</script>
 
 <%- include('../partials/footer') %>
