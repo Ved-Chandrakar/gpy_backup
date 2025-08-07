@@ -64,8 +64,8 @@ class AdminController {
       // Add search conditions
       if (search) {
         whereConditions[Op.or] = [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { mobile: { [Op.iLike]: `%${search}%` } }
+          { name: { [Op.like]: `%${search}%` } },
+          { mobile: { [Op.like]: `%${search}%` } }
         ];
       }
 
@@ -101,6 +101,7 @@ class AdminController {
         filterType: 'district'
       });
     } catch (error) {
+      console.error('Users Error:', error);
       res.status(500).render('error', { 
         title: 'त्रुटि',
         currentPage: 'error',
@@ -124,8 +125,8 @@ class AdminController {
       // Add search conditions
       if (search) {
         whereConditions[Op.or] = [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { mobile: { [Op.iLike]: `%${search}%` } }
+          { name: { [Op.like]: `%${search}%` } },
+          { mobile: { [Op.like]: `%${search}%` } }
         ];
       }
 
@@ -186,8 +187,8 @@ class AdminController {
       // Add search conditions
       if (search) {
         whereConditions[Op.or] = [
-          { name: { [Op.iLike]: `%${search}%` } },
-          { mobile: { [Op.iLike]: `%${search}%` } }
+          { name: { [Op.like]: `%${search}%` } },
+          { mobile: { [Op.like]: `%${search}%` } }
         ];
       }
 
@@ -579,6 +580,94 @@ class AdminController {
 
     } catch (error) {
       console.error('Export Children Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'डेटा एक्सपोर्ट करने में त्रुटि हुई'
+      });
+    }
+  }
+
+  // Export Users Data to Excel
+  async exportUsers(req, res) {
+    try {
+      const search = req.query.search || '';
+      const status = req.query.status || '';
+      const type = req.query.type || 'district'; // district, hospital, mitanin
+
+      // Build where conditions for search
+      let searchCondition = '';
+      if (search.trim()) {
+        searchCondition = `AND (u.name LIKE '%${search}%' OR u.mobile LIKE '%${search}%')`;
+      }
+
+      // Build status filter condition
+      let statusCondition = '';
+      if (status === 'active') {
+        statusCondition = `AND u.is_active = 1`;
+      } else if (status === 'inactive') {
+        statusCondition = `AND u.is_active = 0`;
+      }
+
+      // Build role filter condition based on type
+      let roleCondition = '';
+      if (type === 'district') {
+        roleCondition = `AND r.name = 'collector'`;
+      } else if (type === 'hospital') {
+        roleCondition = `AND r.name = 'hospital'`;
+      } else if (type === 'mitanin') {
+        roleCondition = `AND r.name = 'mitanin'`;
+      }
+
+      // Raw SQL query to get all users data for export (no pagination)
+      const usersQuery = `
+        SELECT 
+          u.id as 'ID',
+          u.name as 'नाम',
+          u.mobile as 'फोन नंबर',
+          u.email as 'ईमेल',
+          u.hospital_name as 'अस्पताल का नाम',
+          u.userid as 'यूजर ID',
+          r.name as 'भूमिका',
+          CASE WHEN u.is_active = 1 THEN 'सक्रिय' ELSE 'निष्क्रिय' END as 'स्थिति',
+          CASE WHEN u.is_password_changed = 1 THEN 'हाँ' ELSE 'नहीं' END as 'पासवर्ड बदला गया',
+          DATE_FORMAT(u.created_at, '%d/%m/%Y %H:%i') as 'पंजीकरण तिथि',
+          DATE_FORMAT(u.updated_at, '%d/%m/%Y %H:%i') as 'अंतिम अपडेट',
+          DATE_FORMAT(u.last_login, '%d/%m/%Y %H:%i') as 'अंतिम लॉगिन'
+        FROM tbl_user u
+        LEFT JOIN tbl_role r ON u.role_id = r.id
+        WHERE 1=1 ${searchCondition} ${statusCondition} ${roleCondition}
+        ORDER BY u.created_at DESC
+      `;
+
+      const [usersResult] = await dbInstance.query(usersQuery);
+
+      // Create Excel workbook
+      const XLSX = require('xlsx');
+      const workbook = XLSX.utils.book_new();
+      
+      // Convert data to worksheet
+      const worksheet = XLSX.utils.json_to_sheet(usersResult);
+      
+      // Add worksheet to workbook
+      const sheetName = type === 'district' ? 'जिला स्तरीय उपयोगकर्ता' : 
+                       type === 'hospital' ? 'अस्पताल उपयोगकर्ता' : 
+                       type === 'mitanin' ? 'मितानिन उपयोगकर्ता' : 'उपयोगकर्ता';
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      // Generate filename with current date
+      const now = new Date();
+      const filename = `Users_${type}_Data_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+
+      // Set response headers for file download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Write workbook to response
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Export Users Error:', error);
       res.status(500).json({
         success: false,
         message: 'डेटा एक्सपोर्ट करने में त्रुटि हुई'

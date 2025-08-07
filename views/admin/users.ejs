@@ -17,6 +17,10 @@
             <% } %>
             उपयोगकर्ता
         </span>
+        <button type="button" class="btn btn-success btn-sm me-2" onclick="exportData()">
+            <i class="fas fa-file-excel me-1"></i>
+एक्सेल निर्यात
+        </button>
         <a href="/admin/users/new" class="btn btn-primary btn-sm">
             <i class="fas fa-plus me-1"></i>नया उपयोगकर्ता
         </a>
@@ -444,6 +448,34 @@ function editCurrentUser() {
     if (currentUserId) {
         window.location.href = `/admin/users/${currentUserId}/edit`;
     }
+}
+
+function exportData() {
+    // Get current filter parameters
+    const params = new URLSearchParams(window.location.search);
+    const exportUrl = new URL('/admin/users/export', window.location.origin);
+    
+    // Determine user type based on current page
+    const currentPath = window.location.pathname;
+    let userType = 'district';
+    if (currentPath.includes('/hospitals')) {
+        userType = 'hospital';
+    } else if (currentPath.includes('/mitanins')) {
+        userType = 'mitanin';
+    }
+    
+    // Add user type to export URL
+    exportUrl.searchParams.set('type', userType);
+    
+    // Preserve all current filters
+    for (const [key, value] of params.entries()) {
+        if (key !== 'page') { // Don't include page parameter in export
+            exportUrl.searchParams.set(key, value);
+        }
+    }
+    
+    // Open download in new window
+    window.open(exportUrl.toString(), '_blank');
 }
 </script>
 
