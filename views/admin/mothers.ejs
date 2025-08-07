@@ -35,7 +35,7 @@
                         <% } %>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select name="hospital" id="hospitalFilter" class="form-select">
                         <option value="">सभी अस्पताल</option>
                         <% if (hospitals && hospitals.length > 0) { %>
@@ -47,15 +47,22 @@
                         <% } %>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <select name="status" class="form-select">
-                        <option value="">सभी स्थिति</option>
+                        <option value="">स्थिति</option>
                         <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
                         <option value="inactive" <%= req.query.status === 'inactive' ? 'selected' : '' %>>निष्क्रिय</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-outline-primary w-100">खोजें</button>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-success w-100" onclick="exportData()">
+                        <i class="fas fa-file-excel me-1"></i>
+                        
+एक्सेल निर्यात
+                    </button>
                 </div>
             </form>
         </div>
@@ -276,6 +283,26 @@
 <%- include('../partials/footer') %>
 
 <script>
+// Export function
+function exportData() {
+    // Get current filter values
+    const search = document.querySelector('input[name="search"]').value;
+    const block = document.querySelector('select[name="block"]').value;
+    const hospital = document.querySelector('select[name="hospital"]').value;
+    const status = document.querySelector('select[name="status"]').value;
+    
+    // Build URL with current filters
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (block) params.set('block', block);
+    if (hospital) params.set('hospital', hospital);
+    if (status) params.set('status', status);
+    
+    // Open export URL in new window
+    const exportUrl = `/admin/mothers/export?${params.toString()}`;
+    window.open(exportUrl, '_blank');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const blockFilter = document.getElementById('blockFilter');
     const hospitalFilter = document.getElementById('hospitalFilter');

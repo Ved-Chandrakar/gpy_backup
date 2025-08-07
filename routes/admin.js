@@ -33,6 +33,7 @@ router.get('/users/:id/details', requireRole(['admin', 'state', 'collector']), a
 
 // Mothers Management
 router.get('/mothers', adminController.mothers);
+router.get('/mothers/export', adminController.exportMothers);
 router.get('/mothers/:mobile/edit', adminController.editMotherForm);
 router.post('/mothers/:mobile/edit', adminController.updateMother);
 

@@ -378,6 +378,95 @@ class AdminController {
     }
   }
 
+  // Export Mothers Data to Excel
+  async exportMothers(req, res) {
+    try {
+      const search = req.query.search || '';
+      const block = req.query.block || '';
+      const hospital = req.query.hospital || '';
+
+      // Build where conditions for search (same as mothers method)
+      let searchCondition = '';
+      if (search.trim()) {
+        searchCondition = `AND (c.mother_name LIKE '%${search}%' OR c.mother_mobile LIKE '%${search}%')`;
+      }
+
+      // Build block filter condition
+      let blockCondition = '';
+      if (block) {
+        blockCondition = `AND c.block_code = '${block}'`;
+      } else {
+        blockCondition = `AND b.lgd_district_code = 387`;
+      }
+
+      // Build hospital filter condition
+      let hospitalCondition = '';
+      if (hospital) {
+        hospitalCondition = `AND c.hospital_id = '${hospital}'`;
+      }
+
+      // Raw SQL query to get all mothers data for export (no pagination)
+      const mothersQuery = `
+        SELECT 
+          c.mother_name as 'माता का नाम',
+          c.mother_mobile as 'मोबाइल नंबर',
+          COUNT(*) as 'बच्चों की संख्या',
+          MAX(c.created_at) as 'अंतिम बच्चे की प्रविष्टि',
+          MIN(c.created_at) as 'पहली बच्चे की प्रविष्टि',
+          h.hospital_name as 'अस्पताल का नाम',
+          m.name as 'मितानिन का नाम',
+          d.district_name as 'जिला',
+          b.block_name as 'ब्लॉक',
+          v.village_name as 'गांव',
+          (SELECT c2.child_order FROM tbl_child c2 WHERE c2.mother_name = c.mother_name AND c2.mother_mobile = c.mother_mobile ORDER BY c2.created_at DESC LIMIT 1) as 'अंतिम बच्चे का क्रम',
+          (SELECT CASE WHEN c2.gender = 'male' THEN 'पुत्र' ELSE 'पुत्री' END FROM tbl_child c2 WHERE c2.mother_name = c.mother_name AND c2.mother_mobile = c.mother_mobile ORDER BY c2.created_at DESC LIMIT 1) as 'अंतिम बच्चे का लिंग',
+          CASE WHEN c.is_active = 1 THEN 'सक्रिय' ELSE 'निष्क्रिय' END as 'स्थिति'
+        FROM tbl_child c
+        LEFT JOIN tbl_user h ON c.hospital_id = h.id
+        LEFT JOIN tbl_user m ON c.assigned_mitanin_id = m.id  
+        LEFT JOIN master_district d ON c.district_code = d.district_code
+        LEFT JOIN master_block b ON c.block_code = b.block_code
+        LEFT JOIN master_village v ON c.village_code = v.village_code
+        WHERE 1=1 ${searchCondition} ${blockCondition} ${hospitalCondition}
+        GROUP BY c.mother_name, c.mother_mobile, c.hospital_id, c.assigned_mitanin_id, 
+                 c.district_code, c.block_code, c.village_code, c.is_active,
+                 h.hospital_name, m.name, d.district_name, b.block_name, v.village_name
+        ORDER BY MAX(c.created_at) DESC
+      `;
+
+      const [mothersResult] = await dbInstance.query(mothersQuery);
+
+      // Create Excel workbook
+      const XLSX = require('xlsx');
+      const workbook = XLSX.utils.book_new();
+      
+      // Convert data to worksheet
+      const worksheet = XLSX.utils.json_to_sheet(mothersResult);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'माताओं की सूची');
+
+      // Generate filename with current date
+      const now = new Date();
+      const filename = `Mothers_Data_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+
+      // Set response headers for file download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Write workbook to response
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Export Mothers Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'डेटा एक्सपोर्ट करने में त्रुटि हुई'
+      });
+    }
+  }
+
   // Mother Edit Management
   async editMotherForm(req, res) {
     try {
