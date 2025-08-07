@@ -252,23 +252,40 @@
 
     <!-- Pagination -->
     <% if (totalPages > 1) { %>
+        <% 
+            // Helper function to build URL with preserved query parameters
+            function buildPaginationUrl(pageNum) {
+                const params = new URLSearchParams();
+                params.set('page', pageNum);
+                
+                // Preserve existing query parameters
+                if (req.query.search) params.set('search', req.query.search);
+                if (req.query.block) params.set('block', req.query.block);
+                if (req.query.gender) params.set('gender', req.query.gender);
+                if (req.query.status) params.set('status', req.query.status);
+                if (req.query.mother) params.set('mother', req.query.mother);
+                if (req.query.mobile) params.set('mobile', req.query.mobile);
+                
+                return '?' + params.toString();
+            }
+        %>
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 <% if (page > 1) { %>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<%= page - 1 %>">पिछला</a>
+                        <a class="page-link" href="<%= buildPaginationUrl(page - 1) %>">पिछला</a>
                     </li>
                 <% } %>
                 
                 <% for (let i = 1; i <= totalPages; i++) { %>
                     <li class="page-item <%= i === page ? 'active' : '' %>">
-                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        <a class="page-link" href="<%= buildPaginationUrl(i) %>"><%= i %></a>
                     </li>
                 <% } %>
                 
                 <% if (page < totalPages) { %>
                     <li class="page-item">
-                        <a class="page-link" href="?page=<%= page + 1 %>">अगला</a>
+                        <a class="page-link" href="<%= buildPaginationUrl(page + 1) %>">अगला</a>
                     </li>
                 <% } %>
             </ul>
