@@ -93,9 +93,6 @@
 #monthlyPerformanceChart, #categoryChart {
     max-height: 300px !important;
 }
-#growthChart, #districtChart {
-    max-height: 250px !important;
-}
 
 /* Filter section CSS removed - no filters in modern reports */
 
@@ -641,32 +638,6 @@
         </div>
     </div>
 
-    <!-- Growth Analytics -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
-            <div class="chart-container">
-                <h5 class="fw-bold mb-3">
-                    <i class="fas fa-seedling text-success me-2"></i>
-                    पौधों की वृद्धि दर
-                </h5>
-                <div style="position: relative; height: 250px;">
-                    <canvas id="growthChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 mb-4">
-            <div class="chart-container">
-                <h5 class="fw-bold mb-3">
-                    <i class="fas fa-map-marker-alt text-info me-2"></i>
-                    ब्लॉक-वार प्रदर्शन
-                </h5>
-                <div style="position: relative; height: 250px;">
-                    <canvas id="districtChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Smart Insights and Analytics -->
     <div class="row mb-4">
         <!-- Key Performance Indicators -->
@@ -958,98 +929,6 @@ function initializeCharts() {
             }
         });
     }
-
-    // Growth Analysis Chart
-    const growthCtx = document.getElementById('growthChart');
-    if (growthCtx) {
-        const growthData = generateGrowthData();
-        new Chart(growthCtx, {
-            type: 'bar',
-            data: {
-                labels: growthData.labels,
-                datasets: [{
-                    label: 'वृद्धि दर (%)',
-                    data: growthData.data,
-                    backgroundColor: [
-                        'rgba(17, 153, 142, 0.8)',
-                        'rgba(56, 239, 125, 0.8)',
-                        'rgba(240, 147, 251, 0.8)',
-                        'rgba(79, 172, 254, 0.8)',
-                        'rgba(102, 126, 234, 0.8)'
-                    ],
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                ...modernChartOptions,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
-
-    const districtCtx = document.getElementById('districtChart');
-    if (districtCtx) {
-        const blockData = generateBlockData();
-        new Chart(districtCtx, {
-            type: 'bar',
-            data: {
-                labels: blockData.labels,
-                datasets: [{
-                    label: 'प्रदर्शन स्कोर',
-                    data: blockData.data,
-                    backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(17, 153, 142, 0.8)',
-                        'rgba(240, 147, 251, 0.8)',
-                        'rgba(79, 172, 254, 0.8)',
-                        'rgba(245, 87, 108, 0.8)'
-                    ],
-                    borderColor: [
-                        '#667eea',
-                        '#11998e',
-                        '#f093fb',
-                        '#4facfe',
-                        '#f5576c'
-                    ],
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                ...modernChartOptions,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            color: 'rgba(0,0,0,0.1)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
 }
 
 function generateMonthlyData() {
@@ -1117,38 +996,6 @@ function generateCategoryData() {
     return {
         labels: ['फल के पौधे', 'फूल के पौधे', 'औषधीय पौधे', 'लकड़ी के पौधे'],
         data: [45, 20, 25, 10]
-    };
-}
-
-function generateGrowthData() {
-    const dynamicData = window.dynamicData || { plants: [] };
-    if (dynamicData.plants.length > 0) {
-        const topPlants = dynamicData.plants.slice(0, 5);
-        return {
-            labels: topPlants.map(plant => plant.name),
-            data: topPlants.map(() => Math.floor(Math.random() * 30) + 70)
-        };
-    }
-    
-    return {
-        labels: ['आम', 'अमरूद', 'नीम', 'तुलसी', 'गुलाब'],
-        data: [92, 85, 78, 95, 80]
-    };
-}
-
-function generateBlockData() {
-    const dynamicData = window.dynamicData || { districts: [] };
-    if (dynamicData.districts.length > 0) {
-        const topBlocks = dynamicData.districts.slice(0, 5);
-        return {
-            labels: topBlocks.map(block => block.name),
-            data: topBlocks.map(() => Math.floor(Math.random() * 30) + 70)
-        };
-    }
-    
-    return {
-        labels: ['राजनांदगांव', 'खुजा', 'डोंगरगढ़', 'चुराई', 'मोंगरा'],
-        data: [95, 87, 82, 78, 90]
     };
 }
 
