@@ -854,6 +854,7 @@ class AdminController {
       const search = req.query.search || '';
       const block = req.query.block || '';
       const gender = req.query.gender || '';
+      const status = req.query.status || '';
       const mother = req.query.mother || '';
       const mobile = req.query.mobile || '';
 
@@ -880,6 +881,11 @@ class AdminController {
       // Add gender filter if specified
       if (gender) {
         whereConditions.gender = gender;
+      }
+
+      // Add status filter if specified
+      if (status) {
+        whereConditions.is_active = status === 'active';
       }
 
       // Get blocks for the district 387 for filter dropdown
@@ -952,6 +958,16 @@ class AdminController {
         }
       }
 
+      // Add gender filter if specified (but not for gender-specific stats)
+      if (gender) {
+        statsWhereConditions.gender = gender;
+      }
+
+      // Add status filter if specified
+      if (status) {
+        statsWhereConditions.is_active = status === 'active';
+      }
+
       // Build include options for stats
       const statsIncludeOptions = [
         { 
@@ -984,15 +1000,17 @@ class AdminController {
         include: statsIncludeOptions
       });
       
-      // Male children count (with filters)
-      const maleStatsWhere = { ...statsWhereConditions, gender: 'male' };
+      // Male children count (without gender filter for accurate count)
+      const maleStatsWhereBase = { ...statsWhereConditions };
+      delete maleStatsWhereBase.gender; // Remove gender filter for gender-specific counts
+      const maleStatsWhere = { ...maleStatsWhereBase, gender: 'male' };
       const maleChildrenCount = await Child.count({
         where: maleStatsWhere,
         include: statsIncludeOptions
       });
       
-      // Female children count (with filters)
-      const femaleStatsWhere = { ...statsWhereConditions, gender: 'female' };
+      // Female children count (without gender filter for accurate count)
+      const femaleStatsWhere = { ...maleStatsWhereBase, gender: 'female' };
       const femaleChildrenCount = await Child.count({
         where: femaleStatsWhere,
         include: statsIncludeOptions
