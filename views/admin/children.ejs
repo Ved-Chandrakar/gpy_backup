@@ -78,7 +78,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">कुल बच्चे</h6>
-                            <h4><%= totalChildren %></h4>
+                            <h4><%= overallStats.total_children || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-baby fa-2x opacity-75"></i>
@@ -93,7 +93,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">पुत्र</h6>
-                            <h4><%= children.filter(c => c.gender === 'male').length %></h4>
+                            <h4><%= overallStats.male_children || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-male fa-2x opacity-75"></i>
@@ -108,7 +108,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">पुत्री</h6>
-                            <h4><%= children.filter(c => c.gender === 'female').length %></h4>
+                            <h4><%= overallStats.female_children || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-female fa-2x opacity-75"></i>
@@ -123,7 +123,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">इस महीने नए</h6>
-                            <h4><%= children.filter(c => new Date(c.created_at).getMonth() === new Date().getMonth()).length %></h4>
+                            <h4><%= overallStats.new_this_month || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-plus-circle fa-2x opacity-75"></i>

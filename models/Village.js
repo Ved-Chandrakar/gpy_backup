@@ -20,7 +20,6 @@ const Village = sequelize.define('Village', {
   },
   panchayat_code: {
     type: DataTypes.BIGINT,
-    primaryKey: true,
     allowNull: false,
     comment: 'Panchayat code'
   },
@@ -36,7 +35,6 @@ const Village = sequelize.define('Village', {
   },
   block_code: {
     type: DataTypes.INTEGER,
-    primaryKey: true,
     allowNull: false,
     comment: 'Block code'
   },
@@ -52,7 +50,6 @@ const Village = sequelize.define('Village', {
   },
   district_code: {
     type: DataTypes.SMALLINT,
-    primaryKey: true,
     allowNull: false,
     comment: 'District code'
   },
@@ -68,7 +65,14 @@ const Village = sequelize.define('Village', {
   }
 }, {
   tableName: 'master_village',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    {
+      unique: true,
+      name: 'master_village_mappings_pk',
+      fields: ['village_code', 'panchayat_code', 'block_code', 'district_code']
+    }
+  ]
 });
 
 module.exports = Village;

@@ -12,6 +12,14 @@
                     </h1>
                     <p class="text-muted">कुल <%= totalMothers %> माताएं पंजीकृत</p>
                 </div>
+                <% if (!isBlockViewer) { %>
+                    <div>
+                        <button type="button" class="btn btn-success" onclick="exportData()">
+                            <i class="fas fa-file-excel me-2"></i>
+                            एक्सेल निर्यात
+                        </button>
+                    </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -20,7 +28,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3" id="filterForm">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <input type="text" class="form-control" name="search" placeholder="माता या बच्चे का नाम खोजें..." value="<%= req.query.search || '' %>">
                 </div>
                 <div class="col-md-2">
@@ -35,7 +43,7 @@
                         <% } %>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <select name="hospital" id="hospitalFilter" class="form-select">
                         <option value="">सभी अस्पताल</option>
                         <% if (hospitals && hospitals.length > 0) { %>
@@ -56,13 +64,6 @@
                 </div>
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-outline-primary w-100">खोजें</button>
-                </div>
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-success w-100" onclick="exportData()">
-                        <i class="fas fa-file-excel me-1"></i>
-                        
-एक्सेल निर्यात
-                    </button>
                 </div>
             </form>
         </div>
@@ -91,7 +92,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">सक्रिय माताएं</h6>
-                            <h4><%= mothers.filter(m => m.is_active).length %></h4>
+                            <h4><%= overallStats.active_mothers || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-check-circle fa-2x opacity-75"></i>
@@ -106,7 +107,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">निष्क्रिय माताएं</h6>
-                            <h4><%= mothers.filter(m => !m.is_active).length %></h4>
+                            <h4><%= overallStats.inactive_mothers || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-times-circle fa-2x opacity-75"></i>
@@ -121,7 +122,7 @@
                     <div class="d-flex justify-content-between">
                         <div>
                             <h6 class="card-title">इस महीने नई</h6>
-                            <h4><%= mothers.filter(m => new Date(m.last_child_entry_date).getMonth() === new Date().getMonth()).length %></h4>
+                            <h4><%= overallStats.new_this_month || 0 %></h4>
                         </div>
                         <div>
                             <i class="fas fa-plus-circle fa-2x opacity-75"></i>

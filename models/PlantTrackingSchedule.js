@@ -59,6 +59,7 @@ const PlantTrackingSchedule = sequelize.define('PlantTrackingSchedule', {
 }, {
   tableName: 'tbl_plant_tracking_schedule',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   indexes: [

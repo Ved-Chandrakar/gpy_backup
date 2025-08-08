@@ -138,6 +138,9 @@
                         <div class="col-sm-8">
                             <% if (child.hospital) { %>
                                 <strong><%= child.hospital.hospital_name || child.hospital.name || 'अस्पताल का नाम उपलब्ध नहीं' %></strong>
+                                <% if (child.hospital.name) { %>
+                                    <br><small class="text-primary">👤 <%= child.hospital.name %></small>
+                                <% } %>
                                 <% if (child.hospital.mobile) { %>
                                     <br><small class="text-muted">📞 <%= child.hospital.mobile %></small>
                                 <% } %>

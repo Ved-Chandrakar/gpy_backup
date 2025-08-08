@@ -353,6 +353,34 @@ class AdminController {
       const [mothersResult] = await dbInstance.query(mothersQuery);
       const [countResult] = await dbInstance.query(countQuery);
       
+      // Get overall stats (not paginated)
+      const statsQuery = `
+        SELECT 
+          COUNT(DISTINCT CONCAT(c.mother_name, '_', COALESCE(c.mother_mobile, ''))) as total_mothers,
+          SUM(CASE WHEN c.is_active = 1 THEN 1 ELSE 0 END) as active_mothers,
+          SUM(CASE WHEN c.is_active = 0 THEN 1 ELSE 0 END) as inactive_mothers,
+          SUM(CASE WHEN MONTH(c.created_at) = MONTH(CURRENT_DATE()) AND YEAR(c.created_at) = YEAR(CURRENT_DATE()) THEN 1 ELSE 0 END) as new_this_month
+        FROM (
+          SELECT 
+            c.mother_name,
+            c.mother_mobile,
+            MAX(c.is_active) as is_active,
+            MIN(c.created_at) as created_at
+          FROM tbl_child c
+          LEFT JOIN master_block b ON c.block_code = b.block_code
+          WHERE 1=1 ${searchCondition} ${blockCondition} ${hospitalCondition}
+          GROUP BY c.mother_name, c.mother_mobile
+        ) c
+      `;
+      
+      const [statsResult] = await dbInstance.query(statsQuery);
+      const overallStats = statsResult[0] || {
+        total_mothers: 0,
+        active_mothers: 0, 
+        inactive_mothers: 0,
+        new_this_month: 0
+      };
+      
       const mothers = mothersResult;
       const totalMothers = countResult[0]?.total || 0;
       const totalPages = Math.ceil(totalMothers / limit);
@@ -366,8 +394,10 @@ class AdminController {
         page: page,
         totalPages,
         totalMothers: totalMothers,
+        overallStats: overallStats,
         user: req.user,
-        req: req
+        req: req,
+        isBlockViewer: req.user?.role?.name === 'block_viewer'
       });
     } catch (error) {
       console.error('Mothers Error:', error);
@@ -849,7 +879,7 @@ class AdminController {
 
       // Add gender filter if specified
       if (gender) {
-        whereConditions.child_gender = gender;
+        whereConditions.gender = gender;
       }
 
       // Get blocks for the district 387 for filter dropdown
@@ -899,6 +929,94 @@ class AdminController {
         include: includeOptions
       });
 
+      // Calculate overall statistics (considering filters but without pagination)
+      const overallStats = {};
+      
+      // Build base where condition for stats (without pagination but with filters)
+      const statsWhereConditions = {};
+      
+      // Add search condition if provided
+      if (search.trim()) {
+        const { Op } = require('sequelize');
+        statsWhereConditions[Op.or] = [
+          { child_name: { [Op.like]: `%${search}%` } },
+          { mother_name: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      // Add mother filter if coming from mothers page
+      if (mother) {
+        statsWhereConditions.mother_name = mother;
+        if (mobile) {
+          statsWhereConditions.mother_mobile = mobile;
+        }
+      }
+
+      // Build include options for stats
+      const statsIncludeOptions = [
+        { 
+          model: User, 
+          as: 'hospital',
+          attributes: ['id']
+        }
+      ];
+
+      // Add block filter if specified or default to district 387
+      if (block) {
+        statsIncludeOptions.push({
+          model: Block, 
+          as: 'block',
+          where: { block_code: block, lgd_district_code: 387 },
+          required: true
+        });
+      } else {
+        statsIncludeOptions.push({
+          model: Block, 
+          as: 'block',
+          where: { lgd_district_code: 387 },
+          required: true
+        });
+      }
+      
+      // Total children count (with filters)
+      const totalChildrenCount = await Child.count({
+        where: statsWhereConditions,
+        include: statsIncludeOptions
+      });
+      
+      // Male children count (with filters)
+      const maleStatsWhere = { ...statsWhereConditions, gender: 'male' };
+      const maleChildrenCount = await Child.count({
+        where: maleStatsWhere,
+        include: statsIncludeOptions
+      });
+      
+      // Female children count (with filters)
+      const femaleStatsWhere = { ...statsWhereConditions, gender: 'female' };
+      const femaleChildrenCount = await Child.count({
+        where: femaleStatsWhere,
+        include: statsIncludeOptions
+      });
+      
+      // This month new children (with filters)
+      const currentDate = new Date();
+      const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const newThisMonthWhere = { 
+        ...statsWhereConditions, 
+        created_at: {
+          [require('sequelize').Op.gte]: startOfMonth
+        }
+      };
+      const newThisMonthCount = await Child.count({
+        where: newThisMonthWhere,
+        include: statsIncludeOptions
+      });
+      
+      overallStats.total_children = totalChildrenCount;
+      overallStats.male_children = maleChildrenCount;
+      overallStats.female_children = femaleChildrenCount;
+      overallStats.new_this_month = newThisMonthCount;
+
       const totalPages = Math.ceil(count / limit);
 
       // Determine page title based on filter
@@ -915,6 +1033,7 @@ class AdminController {
         page: page,
         totalPages,
         totalChildren: count,
+        overallStats,
         user: req.user,
         req: req,
         filterMother: mother

@@ -246,29 +246,81 @@
 
 <!-- Pagination -->
 <% if (totalPages > 1) { %>
-    <div class="d-flex justify-content-center">
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <% if (page > 1) { %>
-                    <li class="page-item">
-                        <a class="page-link" href="?page=<%= page - 1 %>">पिछला</a>
-                    </li>
-                <% } %>
-                
-                <% for (let i = 1; i <= totalPages; i++) { %>
-                    <li class="page-item <%= i === page ? 'active' : '' %>">
-                        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-                    </li>
-                <% } %>
-                
-                <% if (page < totalPages) { %>
-                    <li class="page-item">
-                        <a class="page-link" href="?page=<%= page + 1 %>">अगला</a>
-                    </li>
-                <% } %>
-            </ul>
-        </nav>
-    </div>
+    <% 
+        // Helper function to build URL with preserved query parameters
+        function buildPaginationUrl(pageNum) {
+            const params = new URLSearchParams();
+            params.set('page', pageNum);
+            
+            // Preserve existing query parameters
+            if (req.query.search) params.set('search', req.query.search);
+            if (req.query.plant_category) params.set('plant_category', req.query.plant_category);
+            
+            return '?' + params.toString();
+        }
+
+        // Smart pagination logic
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        
+        // Adjust start page if we're near the end
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+    %>
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center pagination-sm">
+            <!-- First page and Previous -->
+            <% if (page > 1) { %>
+                <li class="page-item">
+                    <a class="page-link" href="<%= buildPaginationUrl(1) %>" title="पहला पेज">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="<%= buildPaginationUrl(page - 1) %>" title="पिछला पेज">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            <% } %>
+            
+            <!-- Show dots if there are pages before our range -->
+            <% if (startPage > 1) { %>
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            <% } %>
+            
+            <!-- Page numbers in range -->
+            <% for (let i = startPage; i <= endPage; i++) { %>
+                <li class="page-item <%= i === page ? 'active' : '' %>">
+                    <a class="page-link" href="<%= buildPaginationUrl(i) %>"><%= i %></a>
+                </li>
+            <% } %>
+            
+            <!-- Show dots if there are pages after our range -->
+            <% if (endPage < totalPages) { %>
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            <% } %>
+            
+            <!-- Next and Last page -->
+            <% if (page < totalPages) { %>
+                <li class="page-item">
+                    <a class="page-link" href="<%= buildPaginationUrl(page + 1) %>" title="अगला पेज">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="<%= buildPaginationUrl(totalPages) %>" title="अंतिम पेज">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
 <% } %>
 
 <style>

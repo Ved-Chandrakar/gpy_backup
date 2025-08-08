@@ -188,8 +188,8 @@
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-download me-2"></i>PNG एक्सपोर्ट</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>PDF एक्सपोर्ट</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportChartAsPNG('dailyComparisonChart', 'दैनिक_पंजीकरण_पौधा_वितरण_तुलना')"><i class="fas fa-download me-2"></i>PNG एक्सपोर्ट</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportChartAsPDF('dailyComparisonChart', 'दैनिक पंजीकरण व पौधा वितरण तुलना')"><i class="fas fa-file-pdf me-2"></i>PDF एक्सपोर्ट</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>विस्तृत रिपोर्ट</a></li>
                             </ul>
@@ -569,6 +569,114 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Chart Export Functions
+function exportChartAsPNG(chartId, filename) {
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = filename + '.png';
+        
+        // Convert canvas to blob and create download URL
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the URL object
+            URL.revokeObjectURL(url);
+        }, 'image/png', 1.0);
+        
+        // Show success message
+        showToast('PNG फाइल डाउनलोड हो रही है...', 'success');
+    } else {
+        showToast('चार्ट नहीं मिला!', 'error');
+    }
+}
+
+function exportChartAsPDF(chartId, title) {
+    const canvas = document.getElementById(chartId);
+    if (canvas) {
+        // Create a new jsPDF instance
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('landscape');
+        
+        // Convert canvas to image data
+        const imgData = canvas.toDataURL('image/png', 1.0);
+        
+        // Calculate dimensions to fit the page
+        const imgWidth = 280; // A4 landscape width minus margins
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Add title
+        pdf.setFontSize(16);
+        pdf.text(title, 15, 20);
+        
+        // Add current date
+        const currentDate = new Date().toLocaleDateString('hi-IN');
+        pdf.setFontSize(10);
+        pdf.text('तारीख: ' + currentDate, 15, 30);
+        
+        // Add chart image
+        pdf.addImage(imgData, 'PNG', 15, 40, imgWidth, imgHeight);
+        
+        // Save the PDF
+        pdf.save(title.replace(/\s+/g, '_') + '.pdf');
+        
+        // Show success message
+        showToast('PDF फाइल डाउनलोड हो रही है...', 'success');
+    } else {
+        showToast('चार्ट नहीं मिला!', 'error');
+    }
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} toast-notification`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
 </script>
 
 <%- include('../partials/footer') %>

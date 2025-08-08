@@ -5,6 +5,7 @@ const AWC = sequelize.define('AWC', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
+    autoIncrement: true,
     allowNull: false,
     comment: 'AWC ID'
   },

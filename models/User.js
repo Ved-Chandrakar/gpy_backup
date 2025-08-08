@@ -63,6 +63,15 @@ const User = sequelize.define('User', {
     },
     comment: 'ब्लॉक आईडी'
   },
+  // village_id: {
+  //   type: DataTypes.INTEGER,
+  //   allowNull: true,
+  //   references: {
+  //     model: 'master_village',
+  //     key: 'id'
+  //   },
+  //   comment: 'गाँव आईडी'
+  // },
   hospital_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
