@@ -58,6 +58,7 @@ router.delete('/plants/:id', adminController.deletePlant);
 
 // Plant Assignments
 router.get('/assignments', adminController.assignments);
+router.get('/assignments/export', adminController.exportAssignments);
 router.get('/assignments/new', adminController.newAssignmentForm);
 router.post('/assignments/new', adminController.createAssignment);
 

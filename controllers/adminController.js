@@ -1374,22 +1374,48 @@ class AdminController {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+      const plantCategory = req.query.plant_category || '';
+
+      // Build where conditions
+      const whereConditions = {};
+      const includeConditions = [];
+
+      // Child include with search condition
+      const childInclude = { 
+        model: Child, 
+        as: 'child',
+        include: [
+          { model: User, as: 'hospital' }
+        ]
+      };
+
+      // Add search condition for mother name
+      if (search.trim()) {
+        childInclude.where = {
+          mother_name: { [require('sequelize').Op.like]: `%${search}%` }
+        };
+        childInclude.required = true;
+      }
+
+      includeConditions.push(childInclude);
+
+      // Plant include with category filter
+      const plantInclude = { model: Plant, as: 'plant' };
+      if (plantCategory) {
+        plantInclude.where = { category: plantCategory };
+        plantInclude.required = true;
+      }
+
+      includeConditions.push(plantInclude);
+      includeConditions.push({ model: User, as: 'assignedBy' });
 
       const { count, rows: assignmentsList } = await PlantAssignment.findAndCountAll({
+        where: whereConditions,
         limit,
         offset,
         order: [['created_at', 'DESC']],
-        include: [
-          { 
-            model: Child, 
-            as: 'child',
-            include: [
-              { model: User, as: 'hospital' }
-            ]
-          },
-          { model: Plant, as: 'plant' },
-          { model: User, as: 'assignedBy' }
-        ]
+        include: includeConditions
       });
 
       // Group assignments by child (mother) and use JSON plant data
@@ -1403,7 +1429,7 @@ class AdminController {
             groupedAssignments[childId] = {
               mother_name: motherName,
               child: assignment.child,
-              hospital_name: assignment.child.hospital ? assignment.child.hospital.name : 'N/A',
+              hospital_name: assignment.child.hospital ? (assignment.child.hospital.hospital_name || assignment.child.hospital.name) : 'N/A',
               plants: [],
               total_quantity: 0,
               assignments: []
@@ -1465,7 +1491,8 @@ class AdminController {
         totalPages,
         totalAssignments: count,
         user: req.user,
-        req: req
+        req: req,
+        isBlockViewer: req.user?.role?.name === 'block_viewer'
       });
     } catch (error) {
       console.error('Assignments Error:', error);
@@ -1474,6 +1501,167 @@ class AdminController {
         currentPage: 'error',
         message: 'आवंटन सूची लोड करने में त्रुटि हुई' 
       });
+    }
+  }
+
+  // Export Assignments Data to Excel
+  async exportAssignments(req, res) {
+    try {
+      const search = req.query.search || '';
+      const plantCategory = req.query.plant_category || '';
+
+      // Build where conditions (same as assignments method)
+      const whereConditions = {};
+      const includeConditions = [];
+
+      // Child include with search condition
+      const childInclude = { 
+        model: Child, 
+        as: 'child',
+        include: [
+          { model: User, as: 'hospital' }
+        ]
+      };
+
+      // Add search condition for mother name
+      if (search.trim()) {
+        childInclude.where = {
+          mother_name: { [require('sequelize').Op.like]: `%${search}%` }
+        };
+        childInclude.required = true;
+      }
+
+      includeConditions.push(childInclude);
+
+      // Plant include with category filter
+      const plantInclude = { model: Plant, as: 'plant' };
+      if (plantCategory) {
+        plantInclude.where = { category: plantCategory };
+        plantInclude.required = true;
+      }
+
+      includeConditions.push(plantInclude);
+      includeConditions.push({ model: User, as: 'assignedBy' });
+
+      // Get all assignments without pagination
+      const assignmentsList = await PlantAssignment.findAll({
+        where: whereConditions,
+        order: [['created_at', 'DESC']],
+        include: includeConditions
+      });
+
+      // Group assignments by child (mother) and use JSON plant data
+      const groupedAssignments = {};
+      assignmentsList.forEach(assignment => {
+        if (assignment.child && assignment.child.mother_name) {
+          const motherName = assignment.child.mother_name;
+          const childId = assignment.child.id;
+          
+          if (!groupedAssignments[childId]) {
+            groupedAssignments[childId] = {
+              mother_name: motherName,
+              child: assignment.child,
+              hospital_name: assignment.child.hospital ? (assignment.child.hospital.hospital_name || assignment.child.hospital.name) : 'N/A',
+              plants: [],
+              total_quantity: 0,
+              assignments: []
+            };
+
+            // Parse plant_quantity JSON to get actual plants
+            if (assignment.child.plant_quantity) {
+              let plantQuantities = assignment.child.plant_quantity;
+              
+              // If it's a string, try to parse it as JSON
+              if (typeof plantQuantities === 'string') {
+                try {
+                  plantQuantities = JSON.parse(plantQuantities);
+                } catch (e) {
+                  plantQuantities = null;
+                }
+              }
+              
+              // If it's an array (already parsed by Sequelize)
+              if (Array.isArray(plantQuantities)) {
+                // Get all plants from the assignments to map plant_id to plant name
+                const plantMap = {};
+                assignmentsList.forEach(a => {
+                  if (a.plant && a.child_id === childId) {
+                    plantMap[a.plant_id] = a.plant;
+                  }
+                });
+
+                // Add plants from JSON data
+                plantQuantities.forEach(plantData => {
+                  const plant = plantMap[plantData.plant_id];
+                  groupedAssignments[childId].plants.push({
+                    name: plant ? plant.name : `Plant ID: ${plantData.plant_id}`,
+                    category: plant ? plant.category : 'unknown',
+                    quantity: plantData.quantity || 1,
+                    status: plantData.status || 'active',
+                    assigned_date: assignment.assigned_date,
+                    plant_id: plantData.plant_id
+                  });
+                  groupedAssignments[childId].total_quantity += plantData.quantity || 1;
+                });
+              }
+            }
+          }
+
+          if (assignment) {
+            groupedAssignments[childId].assignments.push(assignment);
+          }
+        }
+      });
+
+      // Convert to array
+      const assignments = Object.values(groupedAssignments);
+
+      // Prepare data for Excel export
+      const excelData = [];
+      assignments.forEach((group, index) => {
+        const plantsInfo = group.plants.map(plant => 
+          `${plant.name} (${plant.quantity} पौधे, ${plant.status})`
+        ).join('; ');
+
+        excelData.push({
+          'क्रम संख्या': index + 1,
+          'माता का नाम': group.mother_name,
+          'बच्चे का क्रम': group.child ? (
+            group.child.child_order === 'first' ? 'पहला बच्चा' : 
+            group.child.child_order === 'second' ? 'दूसरा बच्चा' : 
+            group.child.child_order === 'third' ? 'तीसरा बच्चा' : 
+            group.child.child_order === 'fourth' ? 'चौथा बच्चा' : 
+            group.child.child_order
+          ) : 'N/A',
+          'पौधे की जानकारी': plantsInfo || 'कोई पौधा नहीं',
+          'कुल पौधे': group.total_quantity,
+          'अस्पताल': group.hospital_name,
+          'पंजीकरण तिथि': group.assignments.length > 0 ? 
+            new Date(group.assignments[0].assigned_date).toLocaleDateString('hi-IN') : 'N/A'
+        });
+      });
+
+      // Create Excel file
+      const XLSX = require('xlsx');
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'पौधा आवंटन');
+
+      // Generate filename with current date
+      const now = new Date();
+      const filename = `Assignments_Data_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Send the Excel file
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Export Assignments Error:', error);
+      res.status(500).json({ error: 'Export में त्रुटि हुई' });
     }
   }
 
