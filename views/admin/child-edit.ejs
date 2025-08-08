@@ -103,7 +103,7 @@
                                     <option value="">अस्पताल चुनें</option>
                                     <% hospitals.forEach(hospital => { %>
                                         <option value="<%= hospital.id %>" <%= (String(child.hospital_id) === String(hospital.id)) ? 'selected' : '' %>>
-                                            <%= hospital.name %>
+                                            <%= hospital.hospital_name || hospital.name %>
                                         </option>
                                     <% }); %>
                                 </select>
@@ -167,7 +167,7 @@
                     </div>
                     <div class="mb-3">
                         <small class="text-muted">अस्पताल:</small>
-                        <div><%= child.hospital ? child.hospital.name : 'अनुपलब्ध' %></div>
+                        <div><%= child.hospital ? (child.hospital.hospital_name || child.hospital.name) : 'अनुपलब्ध' %></div>
                     </div>
                 </div>
             </div>
