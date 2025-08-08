@@ -1786,9 +1786,9 @@ class AdminController {
         PlantAssignment.count(),
         PlantPhoto.count(),
         Plant.count(),
-        User.count({ where: { role_id: 2 } }), // Assuming role_id 2 is hospital
+        User.count({ where: { role_id: 3 } }), // Assuming role_id 2 is hospital
         District.count(),
-        User.count({ where: { role_id: 3 } }), // Assuming role_id 3 is mitanin
+        User.count({ where: { role_id: 4 } }), // Assuming role_id 3 is mitanin
         ReplacementRequest.count(),
         AdminController.getBlockAnalytics(),
         AdminController.getPlantAnalytics(),
