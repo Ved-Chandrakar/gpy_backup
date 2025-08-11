@@ -1,0 +1,121 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-seedling text-primary me-2"></i>
+                        नया पौधा आवंटन
+                    </h1>
+                    <% if (child) { %>
+                        <p class="text-muted"><%= child.mother_name %> के बच्चे के लिए</p>
+                    <% } else { %>
+                        <p class="text-muted">नया पौधा आवंटन करें</p>
+                    <% } %>
+                </div>
+                <div>
+                    <a href="/admin/assignments" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        वापस जाएं
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">पौधा आवंटन विवरण</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/assignments/new">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="child_id" class="form-label">बच्चा चुनें *</label>
+                                <% if (child) { %>
+                                    <input type="hidden" name="child_id" value="<%= child.id %>">
+                                    <div class="form-control-plaintext bg-light p-2 rounded">
+                                        <strong><%= child.mother_name %></strong>
+                                        <br><small class="text-muted">
+                                            <%= child.mother_mobile %> | 
+                                            <%= child.hospital ? child.hospital.name : 'अस्पताल अनुपलब्ध' %> |
+                                            <%= child.block ? child.block.block_name : 'ब्लॉक अनुपलब्ध' %>
+                                        </small>
+                                    </div>
+                                <% } else { %>
+                                    <select name="child_id" id="child_id" class="form-select" required>
+                                        <option value="">बच्चा चुनें</option>
+                                        <% children.forEach(child => { %>
+                                            <option value="<%= child.id %>">
+                                                <%= child.mother_name %> - <%= child.mother_mobile %>
+                                                (<%= child.hospital ? child.hospital.name : 'अस्पताल अनुपलब्ध' %>)
+                                            </option>
+                                        <% }); %>
+                                    </select>
+                                <% } %>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="plant_id" class="form-label">पौधा चुनें *</label>
+                                <select name="plant_id" id="plant_id" class="form-select" required>
+                                    <option value="">पौधा चुनें</option>
+                                    <% plants.forEach(plant => { %>
+                                        <option value="<%= plant.id %>">
+                                            <%= plant.name %> (<%= plant.species %>)
+                                        </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="assigned_date" class="form-label">आवंटन तिथि *</label>
+                                <input type="date" name="assigned_date" id="assigned_date" class="form-control" 
+                                       value="<%= new Date().toISOString().split('T')[0] %>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label">संख्या</label>
+                                <input type="number" name="quantity" id="quantity" class="form-control" 
+                                       value="1" min="1" max="10">
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="notes" class="form-label">टिप्पणी</label>
+                                <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                          placeholder="कोई विशेष निर्देश या टिप्पणी..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>नोट:</strong> पौधा आवंटन के बाद 8 फोटो अपलोड का शेड्यूल स्वचालित रूप से बन जाएगा:
+                            <ul class="mt-2 mb-0">
+                                <li><strong>महीना 1:</strong> 4 साप्ताहिक फोटो (हर सप्ताह)</li>
+                                <li><strong>महीना 2:</strong> 2 द्विसाप्ताहिक फोटो (हर 15 दिन)</li>
+                                <li><strong>महीना 3:</strong> 2 द्विसाप्ताहिक फोटो (हर 15 दिन)</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/admin/assignments" class="btn btn-secondary">रद्द करें</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                पौधा आवंटित करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

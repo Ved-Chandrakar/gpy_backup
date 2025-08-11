@@ -1,0 +1,231 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-edit text-warning me-2"></i>
+                        माता संपादन
+                    </h1>
+                    <p class="text-muted"><%= mother.name %> की जानकारी संपादित करें</p>
+                </div>
+                <a href="/admin/mothers" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    वापस जाएं
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">माता की जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/mothers/<%= mother.mobile %>/edit" method="POST">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">माता का नाम <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" value="<%= mother.name %>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="new_mobile" class="form-label">मोबाइल नंबर <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="new_mobile" name="new_mobile" value="<%= mother.mobile %>" required pattern="[0-9]{10}">
+                                <div class="form-text">10 अंकों का मोबाइल नंबर दर्ज करें</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="email" class="form-label">ईमेल पता</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<%= mother.email || '' %>">
+                                <div class="form-text">वैकल्पिक - ईमेल पता दर्ज करें</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="district_id" class="form-label">जिला <span class="text-danger">*</span></label>
+                                <select class="form-select" id="district_id" name="district_id" required readonly disabled>
+                                    <% districts.forEach(district => { %>
+                                        <option value="<%= district.lgd_district_code %>" selected>
+                                            <%= district.district_name %>
+                                        </option>
+                                    <% }); %>
+                                </select>
+                                <!-- Hidden field to ensure value is submitted -->
+                                <input type="hidden" name="district_id" value="387">
+                                <div class="form-text text-info">
+                                    <i class="fas fa-lock me-1"></i>
+                                    जिला परिवर्तन नहीं किया जा सकता
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="block_id" class="form-label">ब्लॉक <span class="text-danger">*</span></label>
+                                <select class="form-select" id="block_id" name="block_id" required>
+                                    <option value="">ब्लॉक चुनें</option>
+                                    <% 
+                                        let blockFound = false;
+                                        blocks.forEach(block => { 
+                                            const isSelected = (String(mother.block_id) === String(block.block_code));
+                                            if (isSelected) blockFound = true;
+                                    %>
+                                        <option value="<%= block.block_code %>" <%= isSelected ? 'selected' : '' %>>
+                                            <%= block.block_name %>
+                                        </option>
+                                    <% }); %>
+                                </select>
+                                <% if (mother.block_id && !blockFound) { %>
+                                    <div class="form-text text-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        वर्तमान ब्लॉक (ID: <%= mother.block_id %>) उपलब्ध नहीं है। कृपया नया ब्लॉक चुनें।
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="hospital_id" class="form-label">अस्पताल</label>
+                                <select class="form-select" id="hospital_id" name="hospital_id">
+                                    <option value="">अस्पताल चुनें</option>
+                                    <% 
+                                        let hospitalFound = false;
+                                        hospitals.forEach(hospital => { 
+                                            const isSelected = (String(mother.hospital_id) === String(hospital.id));
+                                            if (isSelected) hospitalFound = true;
+                                    %>
+                                        <option value="<%= hospital.id %>" <%= isSelected ? 'selected' : '' %>>
+                                            <%= hospital.name %>
+                                        </option>
+                                    <% }); %>
+                                </select>
+                                <% if (mother.hospital_id && !hospitalFound) { %>
+                                    <div class="form-text text-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        वर्तमान अस्पताल (ID: <%= mother.hospital_id %>) उपलब्ध नहीं है।
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/admin/mothers" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                रद्द करें
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                सेव करें
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mother Info Card -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">वर्तमान जानकारी</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>माता का नाम:</strong><br>
+                        <span class="text-muted"><%= mother.name %></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>मोबाइल नंबर:</strong><br>
+                        <span class="text-muted"><%= mother.mobile %></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>ईमेल:</strong><br>
+                        <span class="text-muted"><%= mother.email || 'अनुपलब्ध' %></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>ब्लॉक ID:</strong><br>
+                        <span class="text-muted">
+                            <%= mother.block_id || 'अनुपलब्ध' %>
+                            <% if (mother.block_id) { %>
+                                <% 
+                                    const currentBlock = blocks.find(b => String(b.block_code) === String(mother.block_id));
+                                    if (currentBlock) { %>
+                                        (<%= currentBlock.block_name %>)
+                                    <% } else { %>
+                                        <span class="text-warning">(ब्लॉक नहीं मिला)</span>
+                                    <% } %>
+                            <% } %>
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>अस्पताल ID:</strong><br>
+                        <span class="text-muted">
+                            <%= mother.hospital_id || 'अनुपलब्ध' %>
+                            <% if (mother.hospital_id) { %>
+                                <% 
+                                    const currentHospital = hospitals.find(h => String(h.id) === String(mother.hospital_id));
+                                    if (currentHospital) { %>
+                                        (<%= currentHospital.name %>)
+                                    <% } else { %>
+                                        <span class="text-warning">(अस्पताल नहीं मिला)</span>
+                                    <% } %>
+                            <% } %>
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>पंजीकरण तिथि:</strong><br>
+                        <span class="text-muted"><%= new Date(mother.created_at).toLocaleDateString('hi-IN') %></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>स्थिति:</strong><br>
+                        <span class="badge bg-<%= mother.is_active ? 'success' : 'secondary' %>">
+                            <%= mother.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- District is locked to Raipur (387) - No dynamic loading needed -->
+<script>
+// District is locked, no need for dynamic block loading
+// All blocks are already loaded for district 387
+console.log('District locked to Raipur (387)');
+console.log('Mother data:', {
+    block_id: '<%= mother.block_id %>',
+    hospital_id: '<%= mother.hospital_id %>',
+    name: '<%= mother.name %>',
+    mobile: '<%= mother.mobile %>'
+});
+
+// Debug: Check if selections are working
+document.addEventListener('DOMContentLoaded', function() {
+    const blockSelect = document.getElementById('block_id');
+    const hospitalSelect = document.getElementById('hospital_id');
+    
+    console.log('Block select value:', blockSelect.value);
+    console.log('Hospital select value:', hospitalSelect.value);
+    
+    // Log all available options for debugging
+    console.log('Available blocks:');
+    Array.from(blockSelect.options).forEach(option => {
+        console.log(`- ${option.value}: ${option.text} ${option.selected ? '(selected)' : ''}`);
+    });
+    
+    console.log('Available hospitals:');
+    Array.from(hospitalSelect.options).forEach(option => {
+        console.log(`- ${option.value}: ${option.text} ${option.selected ? '(selected)' : ''}`);
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>

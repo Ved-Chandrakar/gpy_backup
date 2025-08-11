@@ -1,0 +1,418 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-female text-success me-2"></i>
+                        माता प्रबंधन
+                    </h1>
+                    <p class="text-muted">कुल <%= totalMothers %> माताएं पंजीकृत</p>
+                </div>
+                <% if (!isBlockViewer) { %>
+                    <div>
+                        <button type="button" class="btn btn-success" onclick="exportData()">
+                            <i class="fas fa-file-excel me-2"></i>
+                            एक्सेल निर्यात
+                        </button>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3" id="filterForm">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="search" placeholder="माता या बच्चे का नाम खोजें..." value="<%= req.query.search || '' %>">
+                </div>
+                <div class="col-md-2">
+                    <select name="block" id="blockFilter" class="form-select">
+                        <option value="">सभी ब्लॉक</option>
+                        <% if (blocks && blocks.length > 0) { %>
+                            <% blocks.forEach(block => { %>
+                                <option value="<%= block.block_code %>" <%= req.query.block == block.block_code ? 'selected' : '' %>>
+                                    <%= block.block_name %>
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="hospital" id="hospitalFilter" class="form-select">
+                        <option value="">सभी अस्पताल</option>
+                        <% if (hospitals && hospitals.length > 0) { %>
+                            <% hospitals.forEach(hospital => { %>
+                                <option value="<%= hospital.id %>" <%= req.query.hospital == hospital.id ? 'selected' : '' %>>
+                                    <%= hospital.hospital_name || hospital.name %>
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <select name="status" class="form-select">
+                        <option value="">स्थिति</option>
+                        <option value="active" <%= req.query.status === 'active' ? 'selected' : '' %>>सक्रिय</option>
+                        <option value="inactive" <%= req.query.status === 'inactive' ? 'selected' : '' %>>निष्क्रिय</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">खोजें</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">कुल माताएं</h6>
+                            <h4><%= totalMothers %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-female fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">सक्रिय माताएं</h6>
+                            <h4><%= overallStats.active_mothers || 0 %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">निष्क्रिय माताएं</h6>
+                            <h4><%= overallStats.inactive_mothers || 0 %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">इस महीने नई</h6>
+                            <h4><%= overallStats.new_this_month || 0 %></h4>
+                        </div>
+                        <div>
+                            <i class="fas fa-plus-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mothers Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">माताओं की सूची</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>माता का नाम</th>
+                            <th>मोबाइल नंबर</th>
+                            <th>बच्चों की संख्या</th>
+                            <th>अंतिम बच्चे की प्रविष्टि</th>
+                            <th>स्थान</th>
+                            <th>स्थिति</th>
+                            <th>कार्य</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (mothers && mothers.length > 0) { %>
+                            <% mothers.forEach(mother => { %>
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong><%= mother.mother_name %></strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (mother.mother_mobile) { %>
+                                            <%= mother.mother_mobile %>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/admin/children?mother=<%= encodeURIComponent(mother.mother_name) %>&mobile=<%= encodeURIComponent(mother.mother_mobile || '') %>" 
+                                           class="badge bg-primary text-decoration-none" 
+                                           title="इस माता के बच्चे देखें">
+                                            <%= mother.child_count %> बच्चे
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <%= new Date(mother.last_child_entry_date).toLocaleDateString('hi-IN') %>
+                                            <% if (mother.last_child_order || mother.last_child_gender) { %>
+                                                <br>
+                                                <% if (mother.last_child_order) { %>
+                                                    <span class="badge bg-info me-1">
+                                                        <% if (mother.last_child_order === 'first') { %>
+                                                            पहला बच्चा
+                                                        <% } else if (mother.last_child_order === 'second') { %>
+                                                            दूसरा बच्चा
+                                                        <% } else if (mother.last_child_order === 'third') { %>
+                                                            तीसरा बच्चा
+                                                        <% } else if (mother.last_child_order === 'fourth') { %>
+                                                            चौथा बच्चा
+                                                        <% } %>
+                                                    </span>
+                                                <% } %>
+                                                <% if (mother.last_child_gender) { %>
+                                                    <span class="badge bg-<%= mother.last_child_gender === 'male' ? 'primary' : 'success' %>">
+                                                        <%= mother.last_child_gender === 'male' ? 'पुत्र' : 'पुत्री' %>
+                                                    </span>
+                                                <% } %>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (mother.block_name) { %>
+                                            <%= mother.block_name %>
+                                        <% } else { %>
+                                            <span class="text-muted">अनुपलब्ध</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<%= mother.is_active ? 'success' : 'secondary' %>">
+                                            <%= mother.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="/admin/children?mother=<%= encodeURIComponent(mother.mother_name) %>&mobile=<%= encodeURIComponent(mother.mother_mobile || '') %>" 
+                                               class="btn btn-sm btn-outline-primary" title="बच्चे देखें">
+                                                <i class="fas fa-baby"></i>
+                                            </a>
+                                            <a href="/admin/mothers/<%= encodeURIComponent(mother.mother_mobile) %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <i class="fas fa-female fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">कोई माता नहीं मिली</p>
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+        <% 
+            // Helper function to build URL with preserved query parameters
+            function buildPaginationUrl(pageNum) {
+                const params = new URLSearchParams();
+                params.set('page', pageNum);
+                
+                // Preserve existing query parameters
+                if (req.query.search) params.set('search', req.query.search);
+                if (req.query.block) params.set('block', req.query.block);
+                if (req.query.hospital) params.set('hospital', req.query.hospital);
+                if (req.query.status) params.set('status', req.query.status);
+                
+                return '?' + params.toString();
+            }
+
+            // Smart pagination logic
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            
+            // Adjust start page if we're near the end
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+        %>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center pagination-sm">
+                <!-- First page and Previous -->
+                <% if (page > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="<%= buildPaginationUrl(1) %>" title="पहला पेज">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="<%= buildPaginationUrl(page - 1) %>" title="पिछला पेज">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                <% } %>
+                
+                <!-- Show dots if there are pages before our range -->
+                <% if (startPage > 1) { %>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                <% } %>
+                
+                <!-- Page numbers in range -->
+                <% for (let i = startPage; i <= endPage; i++) { %>
+                    <li class="page-item <%= i === page ? 'active' : '' %>">
+                        <a class="page-link" href="<%= buildPaginationUrl(i) %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <!-- Show dots if there are pages after our range -->
+                <% if (endPage < totalPages) { %>
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                <% } %>
+                
+                <!-- Next and Last page -->
+                <% if (page < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="<%= buildPaginationUrl(page + 1) %>" title="अगला पेज">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="<%= buildPaginationUrl(totalPages) %>" title="अंतिम पेज">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+// Export function
+function exportData() {
+    // Get current filter values
+    const search = document.querySelector('input[name="search"]').value;
+    const block = document.querySelector('select[name="block"]').value;
+    const hospital = document.querySelector('select[name="hospital"]').value;
+    const status = document.querySelector('select[name="status"]').value;
+    
+    // Build URL with current filters
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (block) params.set('block', block);
+    if (hospital) params.set('hospital', hospital);
+    if (status) params.set('status', status);
+    
+    // Open export URL in new window
+    const exportUrl = `/admin/mothers/export?${params.toString()}`;
+    window.open(exportUrl, '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const blockFilter = document.getElementById('blockFilter');
+    const hospitalFilter = document.getElementById('hospitalFilter');
+    
+    // Save original selected hospital value
+    const originalHospitalValue = hospitalFilter.value;
+    
+    if (blockFilter && hospitalFilter) {
+        blockFilter.addEventListener('change', function() {
+            const selectedBlock = this.value;
+            
+            // Clear hospital dropdown
+            hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+            
+            if (selectedBlock) {
+                // Show loading
+                hospitalFilter.innerHTML = '<option value="">लोड हो रहा है...</option>';
+                
+                // Fetch hospitals for selected block
+                fetch(`/admin/api/hospitals-by-block?block_code=${selectedBlock}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+                        
+                        if (data.hospitals && data.hospitals.length > 0) {
+                            data.hospitals.forEach(hospital => {
+                                const option = document.createElement('option');
+                                option.value = hospital.id;
+                                option.textContent = hospital.hospital_name || hospital.name;
+                                hospitalFilter.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading hospitals:', error);
+                        hospitalFilter.innerHTML = '<option value="">अस्पताल लोड करने में त्रुटि</option>';
+                    });
+            }
+        });
+        
+        // Load hospitals on page load if block is already selected
+        if (blockFilter.value) {
+            const selectedBlock = blockFilter.value;
+            
+            fetch(`/admin/api/hospitals-by-block?block_code=${selectedBlock}`)
+                .then(response => response.json())
+                .then(data => {
+                    hospitalFilter.innerHTML = '<option value="">सभी अस्पताल</option>';
+                    
+                    if (data.hospitals && data.hospitals.length > 0) {
+                        data.hospitals.forEach(hospital => {
+                            const option = document.createElement('option');
+                            option.value = hospital.id;
+                            option.textContent = hospital.hospital_name || hospital.name;
+                            
+                            // Restore selected value if it matches
+                            if (hospital.id == originalHospitalValue) {
+                                option.selected = true;
+                            }
+                            
+                            hospitalFilter.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading hospitals:', error);
+                });
+        }
+    }
+});
+</script>

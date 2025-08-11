@@ -1,0 +1,381 @@
+<%- include('../partials/header') %>
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-baby text-primary me-2"></i>
+                        बच्चे का विवरण
+                    </h1>
+                    <p class="text-muted"><%= child.child_name || child.mother_name + ' का बच्चा' %></p>
+                </div>
+                <div>
+                    <a href="/admin/children" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        वापस जाएं
+                    </a>
+                    <a href="/admin/children/<%= child.id %>/edit" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i>
+                        संपादित करें
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">बुनियादी जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>बच्चे का नाम:</strong></div>
+                        <div class="col-sm-8"><%= child.child_name || 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>माता का नाम:</strong></div>
+                        <div class="col-sm-8"><%= child.mother_name %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>पिता/पति का नाम:</strong></div>
+                        <div class="col-sm-8"><%= child.father_husband_name || 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>माता का मोबाइल:</strong></div>
+                        <div class="col-sm-8"><%= child.mother_mobile || 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>माता का आधार:</strong></div>
+                        <div class="col-sm-8"><%= child.mother_aadhar || 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>लिंग:</strong></div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-<%= child.gender === 'male' ? 'primary' : 'success' %>">
+                                <%= child.gender === 'male' ? 'पुत्र' : 'पुत्री' %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>जन्म तिथि:</strong></div>
+                        <div class="col-sm-8"><%= new Date(child.dob).toLocaleDateString('hi-IN') %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>प्रसव का समय:</strong></div>
+                        <div class="col-sm-8"><%= child.delivery_time || 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>जन्म के समय वजन:</strong></div>
+                        <div class="col-sm-8"><%= child.weight_at_birth ? child.weight_at_birth + ' किलो' : 'अनुपलब्ध' %></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>रक्त समूह:</strong></div>
+                        <div class="col-sm-8">
+                            <% if (child.blood_group) { %>
+                                <span class="badge bg-info"><%= child.blood_group %></span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Birth & Medical Information -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">प्रसव और चिकित्सा जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>बच्चे का क्रम:</strong></div>
+                        <div class="col-sm-8">
+                            <% if (child.child_order) { %>
+                                <span class="badge bg-info">
+                                    <% if (child.child_order === 'first') { %>
+                                        पहला बच्चा
+                                    <% } else if (child.child_order === 'second') { %>
+                                        दूसरा बच्चा
+                                    <% } else if (child.child_order === 'third') { %>
+                                        तीसरा बच्चा
+                                    <% } else if (child.child_order === 'fourth') { %>
+                                        चौथा बच्चा
+                                    <% } %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>प्रसव प्रकार:</strong></div>
+                        <div class="col-sm-8">
+                            <% if (child.delivery_type) { %>
+                                <span class="badge bg-<%= child.delivery_type === 'normal' ? 'success' : child.delivery_type === 'cesarean' ? 'warning' : 'info' %>">
+                                    <% if (child.delivery_type === 'normal') { %>
+                                        सामान्य प्रसव
+                                    <% } else if (child.delivery_type === 'cesarean') { %>
+                                        सिजेरियन
+                                    <% } else if (child.delivery_type === 'assisted') { %>
+                                        सहायक प्रसव
+                                    <% } %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>अस्पताल:</strong></div>
+                        <div class="col-sm-8">
+                            <% if (child.hospital) { %>
+                                <strong><%= child.hospital.hospital_name || child.hospital.name || 'अस्पताल का नाम उपलब्ध नहीं' %></strong>
+                                <% if (child.hospital.name) { %>
+                                    <br><small class="text-primary">👤 <%= child.hospital.name %></small>
+                                <% } %>
+                                <% if (child.hospital.mobile) { %>
+                                    <br><small class="text-muted">📞 <%= child.hospital.mobile %></small>
+                                <% } %>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>मितानिन:</strong></div>
+                        <div class="col-sm-8">
+                            <%= child.mitanin ? child.mitanin.name : 'अनुपलब्ध' %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>जन्म प्रमाण पत्र:</strong></div>
+                        <div class="col-sm-8">
+                            <% if (child.birth_certificate) { %>
+                                <span class="badge bg-<%= child.birth_certificate === 'yes' ? 'success' : 'danger' %>">
+                                    <%= child.birth_certificate === 'yes' ? 'हां' : 'नहीं' %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Information -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">स्थान की जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>जिला:</strong></div>
+                        <div class="col-sm-8">
+                            <%= child.district ? child.district.district_name : 'अनुपलब्ध' %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4"><strong>ब्लॉक:</strong></div>
+                        <div class="col-sm-8">
+                            <%= child.block ? child.block.block_name : 'अनुपलब्ध' %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Government Schemes -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">सरकारी योजनाएं</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>मुख्यमंत्री जीवन जननी योजना:</strong></div>
+                        <div class="col-sm-6">
+                            <% if (child.mmjy) { %>
+                                <span class="badge bg-<%= child.mmjy === 'yes' ? 'success' : 'danger' %>">
+                                    <%= child.mmjy === 'yes' ? 'हां' : 'नहीं' %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>प्रधानमंत्री मातृ वंदना योजना:</strong></div>
+                        <div class="col-sm-6">
+                            <% if (child.pmmvy) { %>
+                                <span class="badge bg-<%= child.pmmvy === 'yes' ? 'success' : 'danger' %>">
+                                    <%= child.pmmvy === 'yes' ? 'हां' : 'नहीं' %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>श्रमिक कार्ड:</strong></div>
+                        <div class="col-sm-6">
+                            <% if (child.is_shramik_card) { %>
+                                <span class="badge bg-<%= child.is_shramik_card === 'yes' ? 'success' : 'danger' %>">
+                                    <%= child.is_shramik_card === 'yes' ? 'हां' : 'नहीं' %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6"><strong>आयुष्मान कार्ड का उपयोग:</strong></div>
+                        <div class="col-sm-6">
+                            <% if (child.is_used_ayushman_card) { %>
+                                <span class="badge bg-<%= child.is_used_ayushman_card === 'yes' ? 'success' : 'danger' %>">
+                                    <%= child.is_used_ayushman_card === 'yes' ? 'हां' : 'नहीं' %>
+                                </span>
+                            <% } else { %>
+                                अनुपलब्ध
+                            <% } %>
+                        </div>
+                    </div>
+                    <% if (child.ayushman_card_amount) { %>
+                        <div class="row mb-3">
+                            <div class="col-sm-6"><strong>आयुष्मान कार्ड राशि:</strong></div>
+                            <div class="col-sm-6">
+                                <span class="badge bg-info">₹ <%= child.ayushman_card_amount %></span>
+                            </div>
+                        </div>
+                    <% } %>
+                    <% if (child.gender === 'female') { %>
+                        <div class="row mb-3">
+                            <div class="col-sm-6"><strong>नन्नी सुरक्षा योजना:</strong></div>
+                            <div class="col-sm-6">
+                                <% if (child.is_benefit_nsy) { %>
+                                    <span class="badge bg-<%= child.is_benefit_nsy === 'yes' ? 'success' : 'danger' %>">
+                                        <%= child.is_benefit_nsy === 'yes' ? 'हां' : 'नहीं' %>
+                                    </span>
+                                <% } else { %>
+                                    अनुपलब्ध
+                                <% } %>
+                            </div>
+                        </div>
+                        <% if (child.is_benefit_nsy === 'yes') { %>
+                            <div class="row mb-3">
+                                <div class="col-sm-6"><strong>NSY फॉर्म मिला:</strong></div>
+                                <div class="col-sm-6">
+                                    <% if (child.is_nsy_form) { %>
+                                        <span class="badge bg-<%= child.is_nsy_form === 'yes' ? 'success' : 'danger' %>">
+                                            <%= child.is_nsy_form === 'yes' ? 'हां' : 'नहीं' %>
+                                        </span>
+                                    <% } else { %>
+                                        अनुपलब्ध
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plant Information -->
+    <% if (plantsWithDetails && plantsWithDetails.length > 0) { %>
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">पौधे की जानकारी</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>पौधे का नाम</th>
+                                        <th>प्रजाति</th>
+                                        <th>मात्रा</th>
+                                        <th>स्थिति</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% plantsWithDetails.forEach(plantData => { %>
+                                        <tr>
+                                            <td>
+                                                <strong><%= plantData.plant ? plantData.plant.name : 'अज्ञात पौधा' %></strong>
+                                                <% if (plantData.plant && plantData.plant.local_name) { %>
+                                                    <br><small class="text-muted">(<%= plantData.plant.local_name %>)</small>
+                                                <% } %>
+                                            </td>
+                                            <td><%= plantData.plant ? plantData.plant.species : 'अनुपलब्ध' %></td>
+                                            <td><%= plantData.quantity %></td>
+                                            <td>
+                                                <% if (plantData.status) { %>
+                                                    <span class="badge bg-<%= plantData.status === 'good' ? 'success' : plantData.status === 'dead' ? 'danger' : 'warning' %>">
+                                                        <%= plantData.status === 'good' ? 'अच्छा' : plantData.status === 'dead' ? 'मृत' : 'लंबित' %>
+                                                    </span>
+                                                <% } else { %>
+                                                    अनुपलब्ध
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Status Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">स्थिति जानकारी</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <span class="badge bg-<%= child.is_active ? 'success' : 'secondary' %> fs-6">
+                                    <%= child.is_active ? 'सक्रिय' : 'निष्क्रिय' %>
+                                </span>
+                                <div class="mt-1 text-muted small">स्थिति</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <strong><%= new Date(child.created_at).toLocaleDateString('hi-IN') %></strong>
+                                <div class="mt-1 text-muted small">पंजीकरण तिथि</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <strong><%= new Date(child.updated_at).toLocaleDateString('hi-IN') %></strong>
+                                <div class="mt-1 text-muted small">अंतिम अपडेट</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
