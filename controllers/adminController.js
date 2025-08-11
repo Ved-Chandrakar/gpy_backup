@@ -2205,6 +2205,10 @@ class AdminController {
         userid = `MIT-${mobile}`;
       }
 
+      // Validate block_id for Raipur district
+      const validBlockIds = ['3693', '3694', '3700', '3707']; // ABHANPUR, ARANG, DHARSIWA, TILDA
+      const validatedBlockId = block_id && validBlockIds.includes(block_id) ? block_id : '3693'; // Default to ABHANPUR
+
       const newUser = await User.create({
         userid,
         name,
@@ -2212,8 +2216,8 @@ class AdminController {
         email,
         password, // Will be hashed by the model
         role_id,
-        district_id: 387, // Always Raipur district
-        block_id: block_id || null,
+        district_id: 387, // Raipur district code
+        block_id: validatedBlockId,
         hospital_name: hospital_name || null,
         is_active: 1,
         is_password_changed: 0
