@@ -219,6 +219,13 @@
                                                class="btn btn-sm btn-outline-primary" title="बच्चे देखें">
                                                 <i class="fas fa-baby"></i>
                                             </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-info photo-stats-btn" 
+                                                    title="फोटो आंकड़े देखें"
+                                                    data-mother-name="<%= mother.mother_name %>"
+                                                    data-mother-mobile="<%= mother.mother_mobile || '' %>">
+                                                <i class="fas fa-camera"></i>
+                                            </button>
                                             <a href="/admin/mothers/<%= encodeURIComponent(mother.mother_mobile) %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
                                                 <i class="fas fa-edit"></i>
                                             </a>
@@ -414,5 +421,185 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
     }
+
+    // Photo Stats functionality
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.photo-stats-btn')) {
+            const button = e.target.closest('.photo-stats-btn');
+            const motherName = button.getAttribute('data-mother-name');
+            const motherMobile = button.getAttribute('data-mother-mobile');
+            showPhotoStats(motherName, motherMobile);
+        }
+    });
+
+    function showPhotoStats(motherName, motherMobile) {
+        // Show loading modal first
+        const modal = document.getElementById('photoStatsModal');
+        const modalTitle = modal.querySelector('.modal-title');
+        const modalBody = modal.querySelector('.modal-body');
+        
+        modalTitle.textContent = `${motherName} - फोटो आंकड़े`;
+        modalBody.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">लोड हो रहा है...</span>
+                </div>
+                <p class="mt-2">फोटो आंकड़े लोड हो रहे हैं...</p>
+            </div>
+        `;
+        
+        // Show modal
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+        
+        // Fetch photo stats
+        fetch(`/admin/api/mother-photo-stats?motherName=${encodeURIComponent(motherName)}&motherMobile=${encodeURIComponent(motherMobile)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                displayPhotoStats(data);
+            })
+            .catch(error => {
+                console.error('Error loading photo stats:', error);
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        फोटो आंकड़े लोड करने में त्रुटि हुई: ${error.message}
+                    </div>
+                `;
+            });
+    }
+
+    function displayPhotoStats(data) {
+        const modalBody = document.querySelector('#photoStatsModal .modal-body');
+        
+        let html = `
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">${data.totalPhotos}</h5>
+                            <p class="card-text">कुल फोटो</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">${data.uploadedPhotos}</h5>
+                            <p class="card-text">अपलोड की गई</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">${data.pendingPhotos}</h5>
+                            <p class="card-text">प्रतीक्षारत</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">${data.overduePhotos}</h5>
+                            <p class="card-text">विलंबित</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (data.children && data.children.length > 0) {
+            html += '<h6 class="mb-3">बच्चे और उनके पौधे:</h6>';
+            
+            data.children.forEach(child => {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-baby me-2"></i>
+                                ${child.child_name}
+                                <span class="badge bg-info ms-2">${child.child_order || 'N/A'}</span>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                `;
+                
+                if (child.assignments && child.assignments.length > 0) {
+                    child.assignments.forEach(assignment => {
+                        html += `
+                            <div class="row mb-2 p-2 border rounded">
+                                <div class="col-md-6">
+                                    <strong>${assignment.plant_name}</strong>
+                                    <br><small class="text-muted">${assignment.plant_category}</small>
+                                    <br><small>निर्धारण: ${new Date(assignment.assigned_date).toLocaleDateString('hi-IN')}</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row text-center">
+                                        <div class="col-3">
+                                            <div class="text-primary">
+                                                <strong>${assignment.totalPhotos}</strong>
+                                                <br><small>कुल</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-success">
+                                                <strong>${assignment.uploadedPhotos}</strong>
+                                                <br><small>अपलोड</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-warning">
+                                                <strong>${assignment.pendingPhotos}</strong>
+                                                <br><small>प्रतीक्षा</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <div class="text-danger">
+                                                <strong>${assignment.overduePhotos}</strong>
+                                                <br><small>विलंब</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p class="text-muted">इस बच्चे को कोई पौधा निर्धारित नहीं है।</p>';
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            html += '<div class="alert alert-info">इस माता के कोई बच्चे पंजीकृत नहीं हैं।</div>';
+        }
+        
+        modalBody.innerHTML = html;
+    }
 });
 </script>
+
+<!-- Photo Stats Modal -->
+<div class="modal fade" id="photoStatsModal" tabindex="-1" aria-labelledby="photoStatsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoStatsModalLabel">फोटो आंकड़े</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बंद करें</button>
+            </div>
+        </div>
+    </div>
+</div>

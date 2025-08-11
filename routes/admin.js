@@ -79,5 +79,6 @@ router.get('/active-sessions', authController.getActiveSessions);
 // API endpoints for dynamic loading
 router.get('/api/blocks', adminController.getBlocksByDistrict);
 router.get('/api/hospitals-by-block', adminController.getHospitalsByBlock);
+router.get('/api/mother-photo-stats', adminController.getMotherPhotoStats);
 
 module.exports = router;

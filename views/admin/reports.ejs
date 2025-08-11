@@ -212,6 +212,53 @@
     .metric-icon { font-size: 2rem; }
     .action-buttons { justify-content: center; }
 }
+
+/* Enhanced Secondary Metrics Styling */
+.modern-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.modern-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+}
+
+.modern-card .card-body h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.modern-card .card-body p {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.modern-card .card-body small {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.bg-primary-soft { 
+    background-color: rgba(13, 110, 253, 0.1) !important; 
+    border: 2px solid rgba(13, 110, 253, 0.2);
+}
+
+.bg-success-soft { 
+    background-color: rgba(25, 135, 84, 0.1) !important; 
+    border: 2px solid rgba(25, 135, 84, 0.2);
+}
+
+.bg-warning-soft { 
+    background-color: rgba(255, 193, 7, 0.1) !important; 
+    border: 2px solid rgba(255, 193, 7, 0.2);
+}
+
+.bg-info-soft { 
+    background-color: rgba(13, 202, 240, 0.1) !important; 
+    border: 2px solid rgba(13, 202, 240, 0.2);
+}
 </style>
 
 <div class="container-fluid py-4">
@@ -303,53 +350,65 @@
             </div>
         </div>
 
-        <!-- Secondary Metrics -->
-        <div class="row mb-4">
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
-                <div class="modern-card h-100">
-                    <div class="card-body text-center p-3">
-                        <div class="text-primary mb-2">
-                            <i class="fas fa-hospital fa-2x"></i>
+        <!-- Secondary Metrics - Better Arranged -->
+        <div class="row mb-4 justify-content-center">
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="modern-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary-soft rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-hospital fa-2x text-primary"></i>
                         </div>
-                        <h5 class="fw-bold"><%= reports.overview.totalHospitals || 45 %></h5>
-                        <small class="text-muted">अस्पताल</small>
+                        <h3 class="fw-bold text-primary mb-2"><%= reports.overview.totalHospitals || 45 %></h3>
+                        <p class="text-muted mb-0 fw-medium">अस्पताल</p>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up me-1"></i>+5% इस महीने
+                        </small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
-                <div class="modern-card h-100">
-                    <div class="card-body text-center p-3">
-                        <div class="text-success mb-2">
-                            <i class="fas fa-leaf fa-2x"></i>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="modern-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success-soft rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-leaf fa-2x text-success"></i>
                         </div>
-                        <h5 class="fw-bold"><%= reports.overview.totalPlants || 12 %></h5>
-                        <small class="text-muted">प्रकार के पौधे</small>
+                        <h3 class="fw-bold text-success mb-2"><%= reports.overview.totalPlants || 12 %></h3>
+                        <p class="text-muted mb-0 fw-medium">प्रकार के पौधे</p>
+                        <small class="text-success">
+                            <i class="fas fa-check me-1"></i>सभी उपलब्ध
+                        </small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
-                <div class="modern-card h-100">
-                    <div class="card-body text-center p-3">
-                        <div class="text-warning mb-2">
-                            <i class="fas fa-map-marker-alt fa-2x"></i>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="modern-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-warning-soft rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-map-marker-alt fa-2x text-warning"></i>
                         </div>
-                        <h5 class="fw-bold"><%= reports.overview.totalDistricts || 28 %></h5>
-                        <small class="text-muted">जिले</small>
+                        <h3 class="fw-bold text-warning mb-2"><%= reports.overview.totalDistricts || 28 %></h3>
+                        <p class="text-muted mb-0 fw-medium">जिले</p>
+                        <small class="text-info">
+                            <i class="fas fa-globe me-1"></i>छत्तीसगढ़
+                        </small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
-                <div class="modern-card h-100">
-                    <div class="card-body text-center p-3">
-                        <div class="text-info mb-2">
-                            <i class="fas fa-users fa-2x"></i>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="modern-card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-info-soft rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-users fa-2x text-info"></i>
                         </div>
-                        <h5 class="fw-bold"><%= reports.overview.totalMitanins || 234 %></h5>
-                        <small class="text-muted">मितानिन</small>
+                        <h3 class="fw-bold text-info mb-2"><%= reports.overview.totalMitanins || 234 %></h3>
+                        <p class="text-muted mb-0 fw-medium">मितानिन</p>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up me-1"></i>+8% नए जोड़े गए
+                        </small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
+            <!-- <div class="col-lg-2 col-md-4 col-6 mb-3">
                 <div class="modern-card h-100">
                     <div class="card-body text-center p-3">
                         <div class="text-danger mb-2">
@@ -359,8 +418,8 @@
                         <small class="text-muted">रिप्लेसमेंट</small>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-6 mb-3">
+            </div> -->
+            <!-- <div class="col-lg-2 col-md-4 col-6 mb-3">
                 <div class="modern-card h-100">
                     <div class="card-body text-center p-3">
                         <div class="text-secondary mb-2">
@@ -370,7 +429,7 @@
                         <small class="text-muted">वेरिफिकेशन</small>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     <% } %>
 
@@ -593,12 +652,12 @@
             <div class="chart-container">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">
-                        <i class="fas fa-chart-line text-primary me-2"></i>
-                        मासिक प्रगति ट्रेंड
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        वर्तमान माह की रिपोर्ट
                     </h5>
                     <div class="d-flex gap-2">
-                        <span class="badge bg-primary-soft text-primary px-3 py-2">
-                            <i class="fas fa-arrow-up me-1"></i>+15% यह महीना
+                        <span class="badge bg-info-soft text-info px-3 py-2">
+                            <i class="fas fa-database me-1"></i>वास्तविक डेटा
                         </span>
                     </div>
                 </div>
@@ -608,13 +667,14 @@
             </div>
         </div>
 
-        <!-- Category Distribution -->
+        <!-- Plant Assignment Distribution -->
         <div class="col-lg-4 mb-4">
             <div class="chart-container">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">
                         <i class="fas fa-chart-pie text-success me-2"></i>
-                        पौधा वितरण
+
+                        पौधा आवंटन वितरण
                     </h5>
                 </div>
                 <div style="position: relative; height: 300px;">
@@ -624,13 +684,13 @@
                     <div class="row text-center">
                         <div class="col-6">
                             <div class="border-end">
-                                <h6 class="text-success mb-0">45%</h6>
-                                <small class="text-muted">फल के पौधे</small>
+                                <h6 class="text-success mb-0" id="topCategory1">0%</h6>
+                                <small class="text-muted" id="topCategoryLabel1">औषधीय पौधे</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <h6 class="text-warning mb-0">25%</h6>
-                            <small class="text-muted">औषधीय पौधे</small>
+                            <h6 class="text-warning mb-0" id="topCategory2">0%</h6>
+                            <small class="text-muted" id="topCategoryLabel2">फल के पौधे</small>
                         </div>
                     </div>
                 </div>
@@ -848,45 +908,82 @@ function initializeCharts() {
     if (monthlyCtx) {
         const monthlyData = generateMonthlyData();
         new Chart(monthlyCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: monthlyData.labels,
                 datasets: [{
                     label: 'नए पंजीकरण',
                     data: monthlyData.registrations,
+                    backgroundColor: '#667eea',
                     borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
+                    borderWidth: 1,
+                    borderRadius: 5
                 }, {
                     label: 'पौधा आवंटन',
                     data: monthlyData.assignments,
+                    backgroundColor: '#f093fb',
                     borderColor: '#f093fb',
-                    backgroundColor: 'rgba(240, 147, 251, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#f093fb',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
+                    borderWidth: 1,
+                    borderRadius: 5
                 }, {
                     label: 'फोटो अपलोड',
                     data: monthlyData.photos,
+                    backgroundColor: '#4facfe',
                     borderColor: '#4facfe',
-                    backgroundColor: 'rgba(79, 172, 254, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#4facfe',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6
+                    borderWidth: 1,
+                    borderRadius: 5
                 }]
             },
-            options: modernChartOptions
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -934,68 +1031,74 @@ function initializeCharts() {
 function generateMonthlyData() {
     const dynamicData = window.reportsData || { monthly: [] };
     
-    // If we have real monthly data, use it
-    if (dynamicData.monthly && dynamicData.monthly.length > 0) {
+    // Get current month data only
+    const currentMonth = dynamicData.monthly && dynamicData.monthly.length > 0 ? dynamicData.monthly[0] : null;
+    
+    if (currentMonth) {
         const monthNames = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितम्बर', 'अक्टूबर', 'नवम्बर', 'दिसम्बर'];
-        const labels = [];
-        const registrations = [];
-        const assignments = [];
-        const photos = [];
         
-        dynamicData.monthly.forEach(item => {
-            const [year, month] = item.month.split('-');
-            const monthIndex = parseInt(month) - 1;
-            labels.push(monthNames[monthIndex]);
-            registrations.push(item.registrations || 0);
-            assignments.push(item.assignments || 0);
-            photos.push(item.photos || 0);
+        const [year, month] = currentMonth.month.split('-');
+        const monthIndex = parseInt(month) - 1;
+        const currentMonthLabel = monthNames[monthIndex] + ' ' + year;
+        
+        console.log('Current Month Data:', {
+            label: currentMonthLabel,
+            registrations: currentMonth.registrations || 0,
+            assignments: currentMonth.assignments || 0,
+            photos: currentMonth.photos || 0
         });
         
         return {
-            labels,
-            registrations,
-            assignments,
-            photos
+            labels: [currentMonthLabel],
+            registrations: [currentMonth.registrations || 0],
+            assignments: [currentMonth.assignments || 0],
+            photos: [currentMonth.photos || 0]
         };
     }
     
-    // Fallback to show some data if no real data is available
-    const months = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई'];
-    const baseValue = Math.max((dynamicData.totalMothers || 0) / 7, 5);
+    // Show current month with zero data if no data available
+    const now = new Date();
+    const monthNames = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितम्बर', 'अक्टूबर', 'नवम्बर', 'दिसम्बर'];
+    const currentMonthLabel = monthNames[now.getMonth()] + ' ' + now.getFullYear();
     
+    console.log('No monthly data available, showing current month with zero data');
     return {
-        labels: months,
-        registrations: months.map(() => Math.floor(baseValue + Math.random() * baseValue)),
-        assignments: months.map(() => Math.floor(baseValue * 0.8 + Math.random() * baseValue * 0.4)),
-        photos: months.map(() => Math.floor(baseValue * 0.6 + Math.random() * baseValue * 0.3))
+        labels: [currentMonthLabel],
+        registrations: [0],
+        assignments: [0],
+        photos: [0]
     };
 }
 
 function generateCategoryData() {
-    const dynamicData = window.dynamicData || { plants: [] };
-    if (dynamicData.plants.length > 0) {
-        const categories = {};
-        dynamicData.plants.forEach(plant => {
-            categories[plant.category] = (categories[plant.category] || 0) + 1;
+    const dynamicData = window.dynamicData || { plantAssignmentCategories: [] };
+    if (dynamicData.plantAssignmentCategories && dynamicData.plantAssignmentCategories.length > 0) {
+        const labels = [];
+        const data = [];
+        
+        dynamicData.plantAssignmentCategories.forEach(category => {
+            let categoryLabel;
+            switch(category.category) {
+                case 'fruit': categoryLabel = 'फल के पौधे'; break;
+                case 'flower': categoryLabel = 'फूल के पौधे'; break;
+                case 'medicinal': categoryLabel = 'औषधीय पौधे'; break;
+                case 'timber': categoryLabel = 'लकड़ी के पौधे'; break;
+                case 'other': categoryLabel = 'अन्य पौधे'; break;
+                default: categoryLabel = category.category;
+            }
+            labels.push(categoryLabel);
+            data.push(parseInt(category.count));
         });
         
         return {
-            labels: Object.keys(categories).map(cat => {
-                switch(cat) {
-                    case 'fruit': return 'फल के पौधे';
-                    case 'flower': return 'फूल के पौधे';
-                    case 'medicinal': return 'औषधीय पौधे';
-                    case 'timber': return 'लकड़ी के पौधे';
-                    default: return cat;
-                }
-            }),
-            data: Object.values(categories)
+            labels: labels,
+            data: data
         };
     }
     
     return {
-        labels: ['फल के पौधे', 'फूल के पौधे', 'औषधीय पौधे', 'लकड़ी के पौधे'],
-        data: [45, 20, 25, 10]
+        labels: ['फल के पौधे', 'फूल के पौधे', 'औषधीय पौधे', 'लकड़ी के पौधे', 'अन्य पौधे'],
+        data: [0, 0, 0, 0, 0]
     };
 }
 

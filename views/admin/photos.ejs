@@ -38,7 +38,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="mb-0"><%= photos.filter(p => p.is_verified).length %></h4>
+                            <h4 class="mb-0"><%= verifiedPhotos %></h4>
                             <p class="mb-0">सत्यापित फोटो</p>
                         </div>
                         <div class="flex-shrink-0">
@@ -53,7 +53,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <h4 class="mb-0"><%= photos.filter(p => !p.is_verified).length %></h4>
+                            <h4 class="mb-0"><%= unverifiedPhotos %></h4>
                             <p class="mb-0">असत्यापित फोटो</p>
                         </div>
                         <div class="flex-shrink-0">
