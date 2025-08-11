@@ -90,7 +90,7 @@
     max-height: 300px !important;
     overflow: hidden;
 }
-#monthlyPerformanceChart, #categoryChart {
+#monthlyPerformanceChart {
     max-height: 300px !important;
 }
 
@@ -258,6 +258,31 @@
 .bg-info-soft { 
     background-color: rgba(13, 202, 240, 0.1) !important; 
     border: 2px solid rgba(13, 202, 240, 0.2);
+}
+
+/* Plant Category Legend Styles */
+.category-legend {
+    margin-top: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.legend-text {
+    color: #6c757d;
+    font-weight: 500;
 }
 </style>
 
@@ -667,30 +692,39 @@
             </div>
         </div>
 
-        <!-- Plant Assignment Distribution -->
+        <!-- Plant Category Distribution Chart -->
         <div class="col-lg-4 mb-4">
             <div class="chart-container">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">
                         <i class="fas fa-chart-pie text-success me-2"></i>
-
-                        पौधा आवंटन वितरण
+                        पौधों की श्रेणी वितरण
                     </h5>
                 </div>
                 <div style="position: relative; height: 300px;">
-                    <canvas id="categoryChart"></canvas>
+                    <canvas id="plantCategoryChart"></canvas>
                 </div>
                 <div class="mt-3">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <h6 class="text-success mb-0" id="topCategory1">0%</h6>
-                                <small class="text-muted" id="topCategoryLabel1">औषधीय पौधे</small>
-                            </div>
+                    <div class="category-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot bg-success"></span>
+                            <span class="legend-text">आम (30%)</span>
                         </div>
-                        <div class="col-6">
-                            <h6 class="text-warning mb-0" id="topCategory2">0%</h6>
-                            <small class="text-muted" id="topCategoryLabel2">फल के पौधे</small>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background-color: #17a2b8;"></span>
+                            <span class="legend-text">अमरुद (25%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot bg-warning"></span>
+                            <span class="legend-text">आंवला (20%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot bg-danger"></span>
+                            <span class="legend-text">पपीता (15%)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background-color: #6f42c1;"></span>
+                            <span class="legend-text">मुनगा (10%)</span>
                         </div>
                     </div>
                 </div>
@@ -987,21 +1021,21 @@ function initializeCharts() {
         });
     }
 
-    // Category Distribution Chart
-    const categoryCtx = document.getElementById('categoryChart');
-    if (categoryCtx) {
-        const categoryData = generateCategoryData();
-        new Chart(categoryCtx, {
+    // Plant Category Pie Chart
+    const plantCategoryCtx = document.getElementById('plantCategoryChart');
+    if (plantCategoryCtx) {
+        new Chart(plantCategoryCtx, {
             type: 'doughnut',
             data: {
-                labels: categoryData.labels,
+                labels: ['आम', 'अमरुद', 'आंवला', 'पपीता', 'मुनगा'],
                 datasets: [{
-                    data: categoryData.data,
+                    data: [30, 25, 20, 15, 10],
                     backgroundColor: [
-                        '#11998e',
-                        '#f093fb',
-                        '#4facfe',
-                        '#667eea'
+                        '#28a745',
+                        '#17a2b8',
+                        '#ffc107',
+                        '#dc3545',
+                        '#6f42c1'
                     ],
                     borderWidth: 0,
                     hoverOffset: 10
@@ -1010,19 +1044,30 @@ function initializeCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '60%',
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 15,
-                            font: {
-                                size: 12
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
                             }
                         }
                     }
                 },
-                cutout: '60%'
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000
+                }
             }
         });
     }
@@ -1067,38 +1112,6 @@ function generateMonthlyData() {
         registrations: [0],
         assignments: [0],
         photos: [0]
-    };
-}
-
-function generateCategoryData() {
-    const dynamicData = window.dynamicData || { plantAssignmentCategories: [] };
-    if (dynamicData.plantAssignmentCategories && dynamicData.plantAssignmentCategories.length > 0) {
-        const labels = [];
-        const data = [];
-        
-        dynamicData.plantAssignmentCategories.forEach(category => {
-            let categoryLabel;
-            switch(category.category) {
-                case 'fruit': categoryLabel = 'फल के पौधे'; break;
-                case 'flower': categoryLabel = 'फूल के पौधे'; break;
-                case 'medicinal': categoryLabel = 'औषधीय पौधे'; break;
-                case 'timber': categoryLabel = 'लकड़ी के पौधे'; break;
-                case 'other': categoryLabel = 'अन्य पौधे'; break;
-                default: categoryLabel = category.category;
-            }
-            labels.push(categoryLabel);
-            data.push(parseInt(category.count));
-        });
-        
-        return {
-            labels: labels,
-            data: data
-        };
-    }
-    
-    return {
-        labels: ['फल के पौधे', 'फूल के पौधे', 'औषधीय पौधे', 'लकड़ी के पौधे', 'अन्य पौधे'],
-        data: [0, 0, 0, 0, 0]
     };
 }
 
