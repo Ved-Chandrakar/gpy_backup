@@ -1671,38 +1671,40 @@ class AdminController {
       const searchTerm = req.query.search || '';
       const categoryFilter = req.query.plant_category || '';
 
-      // Build where conditions for search
-      const whereConditions = {};
+      // Build include conditions with proper where clauses
       const includeConditions = [
         { 
           model: PlantAssignment, 
           as: 'assignment',
+          required: true, // INNER JOIN to ensure we only get photos with assignments
           include: [
             { 
               model: Child, 
               as: 'child',
+              required: true,
               where: searchTerm ? {
                 [Op.or]: [
                   { mother_name: { [Op.like]: `%${searchTerm}%` } },
                   { child_name: { [Op.like]: `%${searchTerm}%` } }
                 ]
-              } : undefined
+              } : {}
             },
             { 
               model: Plant, 
               as: 'plant',
-              where: categoryFilter ? { category: categoryFilter } : undefined
+              required: true,
+              where: categoryFilter ? { category: categoryFilter } : {}
             }
           ]
         }
       ];
 
       const { count, rows: photos } = await PlantPhoto.findAndCountAll({
-        where: whereConditions,
         limit,
         offset,
         order: [['created_at', 'DESC']],
-        include: includeConditions
+        include: includeConditions,
+        distinct: true // Important for correct count with includes
       });
 
       // Calculate due dates and map data properly
