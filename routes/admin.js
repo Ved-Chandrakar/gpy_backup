@@ -33,10 +33,10 @@ router.post('/users/:id/edit', requireRole(['state', 'collector']), adminControl
 router.get('/users/:id/details', requireRole(['state', 'collector', 'block_viewer']), adminController.getUserDetails);
 
 // Mothers Management
-router.get('/mothers', adminController.mothers);
-router.get('/mothers/export', adminController.exportMothers);
-router.get('/mothers/:mobile/edit', adminController.editMotherForm);
-router.post('/mothers/:mobile/edit', adminController.updateMother);
+router.get('/mothers', requireRole(['state', 'collector', 'block_viewer']), adminController.mothers);
+router.get('/mothers/export', requireRole(['state', 'collector']), adminController.exportMothers);
+router.get('/mothers/:mobile/edit', requireRole(['state', 'collector']), adminController.editMotherForm);
+router.post('/mothers/:mobile/edit', requireRole(['state', 'collector']), adminController.updateMother);
 
 // Children Management
 router.get('/children', adminController.children);

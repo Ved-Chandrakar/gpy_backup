@@ -226,9 +226,11 @@
                                                     data-mother-mobile="<%= mother.mother_mobile || '' %>">
                                                 <i class="fas fa-camera"></i>
                                             </button>
-                                            <a href="/admin/mothers/<%= encodeURIComponent(mother.mother_mobile) %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                                                <a href="/admin/mothers/<%= encodeURIComponent(mother.mother_mobile) %>/edit" class="btn btn-sm btn-outline-warning" title="संपादित करें">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            <% } %>
                                         </div>
                                     </td>
                                 </tr>
