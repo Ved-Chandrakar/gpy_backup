@@ -55,14 +55,14 @@ router.post('/plants/:id/edit', requireRole(['state', 'collector']), plantImageU
 router.delete('/plants/:id', requireRole(['state', 'collector']), adminController.deletePlant);
 
 // Plant Assignments
-router.get('/assignments', adminController.assignments);
-router.get('/assignments/export', adminController.exportAssignments);
-router.get('/assignments/new', adminController.newAssignmentForm);
-router.post('/assignments/new', adminController.createAssignment);
+router.get('/assignments', requireRole(['state', 'collector', 'block_viewer']), adminController.assignments);
+router.get('/assignments/export', requireRole(['state', 'collector']), adminController.exportAssignments);
+router.get('/assignments/new', requireRole(['state', 'collector']), adminController.newAssignmentForm);
+router.post('/assignments/new', requireRole(['state', 'collector']), adminController.createAssignment);
 
 // Plant Photos
-router.get('/photos', adminController.photos);
-router.delete('/photos/:id', adminController.deletePhoto);
+router.get('/photos', requireRole(['state', 'collector', 'block_viewer']), adminController.photos);
+router.delete('/photos/:id', requireRole(['state', 'collector']), adminController.deletePhoto);
 
 // Reports
 router.get('/reports', adminController.reports);

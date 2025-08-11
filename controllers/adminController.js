@@ -1902,7 +1902,8 @@ class AdminController {
         searchTerm,
         categoryFilter,
         user: req.user,
-        req: req
+        req: req,
+        isBlockViewer: req.user?.role?.name === 'block_viewer'
       });
     } catch (error) {
       console.error('Photos Error:', error);

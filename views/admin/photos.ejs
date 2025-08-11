@@ -219,9 +219,15 @@
                             <% } %>
                         </div>
                         <div class="card-footer">
-                            <button class="btn btn-outline-danger w-100 delete-photo-btn" data-photo-id="<%= photo.id %>" title="फोटो हटाएं">
-                                <i class="fas fa-trash me-2"></i>हटाएं
-                            </button>
+                            <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                                <button class="btn btn-outline-danger w-100 delete-photo-btn" data-photo-id="<%= photo.id %>" title="फोटो हटाएं">
+                                    <i class="fas fa-trash me-2"></i>हटाएं
+                                </button>
+                            <% } else { %>
+                                <div class="text-center text-muted">
+                                    <small>केवल देखने की अनुमति है</small>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>
