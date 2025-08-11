@@ -2,6 +2,7 @@ const { User, Child, Plant, PlantAssignment, PlantPhoto, PlantTrackingSchedule, 
 const { Op } = require('sequelize');
 const { sequelize: dbInstance } = require('../config/database');
 const { generateTrackingSchedule } = require('../utils/plantTrackingUtils');
+const XLSX = require('xlsx');
 
 class AdminController {
   // Dashboard
@@ -468,7 +469,6 @@ class AdminController {
       const [mothersResult] = await dbInstance.query(mothersQuery);
 
       // Create Excel workbook
-      const XLSX = require('xlsx');
       const workbook = XLSX.utils.book_new();
       
       // Convert data to worksheet
@@ -587,7 +587,6 @@ class AdminController {
       const [childrenResult] = await dbInstance.query(childrenQuery);
 
       // Create Excel workbook
-      const XLSX = require('xlsx');
       const workbook = XLSX.utils.book_new();
       
       // Convert data to worksheet
@@ -664,7 +663,7 @@ class AdminController {
           DATE_FORMAT(u.updated_at, '%d/%m/%Y %H:%i') as 'अंतिम अपडेट',
           DATE_FORMAT(u.last_login, '%d/%m/%Y %H:%i') as 'अंतिम लॉगिन'
         FROM tbl_user u
-        LEFT JOIN tbl_role r ON u.role_id = r.id
+        LEFT JOIN master_role r ON u.role_id = r.id
         WHERE 1=1 ${searchCondition} ${statusCondition} ${roleCondition}
         ORDER BY u.created_at DESC
       `;
@@ -672,7 +671,6 @@ class AdminController {
       const [usersResult] = await dbInstance.query(usersQuery);
 
       // Create Excel workbook
-      const XLSX = require('xlsx');
       const workbook = XLSX.utils.book_new();
       
       // Convert data to worksheet
@@ -1642,7 +1640,6 @@ class AdminController {
       });
 
       // Create Excel file
-      const XLSX = require('xlsx');
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'पौधा आवंटन');
