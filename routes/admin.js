@@ -47,12 +47,12 @@ router.post('/children/:id/edit', requireRole(['state', 'collector']), adminCont
 router.get('/children/:id/tracking', requireRole(['state', 'collector', 'block_viewer']), adminController.childPlantTracking);
 
 // Plants Management
-router.get('/plants', adminController.plants);
-router.get('/plants/add', adminController.addPlantForm);
-router.post('/plants/add', plantImageUpload.single('plant_image'), adminController.createPlant);
-router.get('/plants/:id/edit', adminController.editPlantForm);
-router.post('/plants/:id/edit', plantImageUpload.single('plant_image'), adminController.updatePlant);
-router.delete('/plants/:id', adminController.deletePlant);
+router.get('/plants', requireRole(['state', 'collector', 'block_viewer']), adminController.plants);
+router.get('/plants/add', requireRole(['state', 'collector']), adminController.addPlantForm);
+router.post('/plants/add', requireRole(['state', 'collector']), plantImageUpload.single('plant_image'), adminController.createPlant);
+router.get('/plants/:id/edit', requireRole(['state', 'collector']), adminController.editPlantForm);
+router.post('/plants/:id/edit', requireRole(['state', 'collector']), plantImageUpload.single('plant_image'), adminController.updatePlant);
+router.delete('/plants/:id', requireRole(['state', 'collector']), adminController.deletePlant);
 
 // Plant Assignments
 router.get('/assignments', adminController.assignments);

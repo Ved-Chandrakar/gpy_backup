@@ -12,11 +12,13 @@
                     </h1>
                     <p class="text-muted">कुल <%= totalPlants %> पौधे उपलब्ध</p>
                 </div>
-                <div>
-                    <a href="/admin/plants/add" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>नया पौधा जोड़ें
-                    </a>
-                </div>
+                <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                    <div>
+                        <a href="/admin/plants/add" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>नया पौधा जोड़ें
+                        </a>
+                    </div>
+                <% } %>
             </div>
         </div>
     </div>
@@ -99,14 +101,20 @@
                             </div>
                         </div>
                         <div class="card-footer">
-                            <div class="btn-group w-100" role="group">
-                                <a href="/admin/plants/<%= plant.id %>/edit" class="btn btn-outline-warning" title="संपादित करें">
-                                    <i class="fas fa-edit me-1"></i>संपादित करें
-                                </a>
-                                <button class="btn btn-outline-danger delete-plant-btn" data-plant-id="<%= plant.id %>" title="हटाएं">
-                                    <i class="fas fa-trash me-1"></i>हटाएं
-                                </button>
-                            </div>
+                            <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                                <div class="btn-group w-100" role="group">
+                                    <a href="/admin/plants/<%= plant.id %>/edit" class="btn btn-outline-warning" title="संपादित करें">
+                                        <i class="fas fa-edit me-1"></i>संपादित करें
+                                    </a>
+                                    <button class="btn btn-outline-danger delete-plant-btn" data-plant-id="<%= plant.id %>" title="हटाएं">
+                                        <i class="fas fa-trash me-1"></i>हटाएं
+                                    </button>
+                                </div>
+                            <% } else { %>
+                                <div class="text-center text-muted">
+                                    <small>केवल देखने की अनुमति है</small>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                 </div>

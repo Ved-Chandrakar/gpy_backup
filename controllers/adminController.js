@@ -1499,7 +1499,8 @@ class AdminController {
         totalPages,
         totalPlants: count,
         user: req.user,
-        req: req
+        req: req,
+        isBlockViewer: req.user?.role?.name === 'block_viewer'
       });
     } catch (error) {
       console.error('Plants Error:', error);
