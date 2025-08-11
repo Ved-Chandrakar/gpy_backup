@@ -1783,6 +1783,7 @@ class AdminController {
         totalReplacements,
         blockData,
         plantData,
+        plantAssignmentCategories,
         monthlyData,
         successRates
       ] = await Promise.all([
@@ -1808,6 +1809,7 @@ class AdminController {
         ReplacementRequest.count(),
         AdminController.getBlockAnalytics(),
         AdminController.getPlantAnalytics(),
+        AdminController.getPlantAssignmentCategoryAnalytics(),
         AdminController.getMonthlyAnalytics(),
         AdminController.getSuccessRates()
       ]);
@@ -1826,6 +1828,7 @@ class AdminController {
         },
         district: blockData,
         plant: plantData,
+        plantAssignmentCategories: plantAssignmentCategories,
         monthly: monthlyData,
         success: successRates
       };
@@ -1936,15 +1939,56 @@ class AdminController {
     }
   }
 
-  // Get Monthly Analytics
+  // Get Plant Assignment Category Analytics for Pie Chart
+  static async getPlantAssignmentCategoryAnalytics() {
+    try {
+      const categoryData = await PlantAssignment.findAll({
+        attributes: [
+          [{ col: 'plant.category' }, 'category'],
+          [
+            { fn: 'COUNT', args: [{ col: 'PlantAssignment.id' }] },
+            'count'
+          ]
+        ],
+        include: [
+          {
+            model: Plant,
+            as: 'plant',
+            attributes: [],
+            required: true
+          }
+        ],
+        group: ['plant.category'],
+        order: [[{ fn: 'COUNT', args: [{ col: 'PlantAssignment.id' }] }, 'DESC']]
+      });
+
+      console.log('Plant Assignment Category Data:', categoryData.map(item => ({
+        category: item.dataValues.category,
+        count: item.dataValues.count
+      })));
+
+      return categoryData.map(item => ({
+        category: item.dataValues.category,
+        count: parseInt(item.dataValues.count)
+      }));
+    } catch (error) {
+      console.error('Error fetching plant assignment category analytics:', error);
+      return [];
+    }
+  }
+
+  // Get Monthly Analytics - Only Current Month
   static async getMonthlyAnalytics() {
     try {
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
+      // Get current month data only
+      const currentDate = new Date();
+      const currentMonth = currentDate.getFullYear() + '-' + String(currentDate.getMonth() + 1).padStart(2, '0');
       
-      // Get monthly registrations (unique mothers), assignments, and photos
+      console.log('Fetching current month analytics for:', currentMonth);
+      
+      // Get current month registrations, assignments, and photos
       const [monthlyRegistrations, monthlyAssignments, monthlyPhotos] = await Promise.all([
-        // Monthly unique mother registrations
+        // Current month mother registrations
         dbInstance.query(`
           SELECT 
             DATE_FORMAT(u.created_at, '%Y-%m') as month,
@@ -1952,88 +1996,58 @@ class AdminController {
           FROM tbl_user u
           INNER JOIN master_role r ON u.role_id = r.id
           WHERE r.name = 'mother'
-          AND u.created_at >= ?
-          AND u.mobile IN (
-            SELECT DISTINCT c.mother_mobile 
-            FROM tbl_child c
-          )
+          AND DATE_FORMAT(u.created_at, '%Y-%m') = ?
           GROUP BY DATE_FORMAT(u.created_at, '%Y-%m')
-          ORDER BY month ASC
         `, {
-          replacements: [startDate],
+          replacements: [currentMonth],
           type: dbInstance.QueryTypes.SELECT
         }),
         
-        // Monthly plant assignments
-        PlantAssignment.findAll({
-          attributes: [
-            [{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }, 'month'],
-            [{ fn: 'COUNT', args: [{ col: 'id' }] }, 'assignments'],
-          ],
-          where: {
-            created_at: {
-              [Op.gte]: startDate
-            }
-          },
-          group: [{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }],
-          order: [[{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }, 'ASC']]
+        // Current month plant assignments
+        dbInstance.query(`
+          SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') as month,
+            COUNT(id) as assignments
+          FROM tbl_plant_assignment
+          WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+          GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        `, {
+          replacements: [currentMonth],
+          type: dbInstance.QueryTypes.SELECT
         }),
         
-        // Monthly photo uploads
-        PlantPhoto.findAll({
-          attributes: [
-            [{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }, 'month'],
-            [{ fn: 'COUNT', args: [{ col: 'id' }] }, 'photos'],
-          ],
-          where: {
-            created_at: {
-              [Op.gte]: startDate
-            }
-          },
-          group: [{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }],
-          order: [[{ fn: 'DATE_FORMAT', args: [{ col: 'created_at' }, '%Y-%m'] }, 'ASC']]
+        // Current month photo uploads
+        dbInstance.query(`
+          SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') as month,
+            COUNT(id) as photos
+          FROM log_plant_photo
+          WHERE DATE_FORMAT(created_at, '%Y-%m') = ?
+          GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        `, {
+          replacements: [currentMonth],
+          type: dbInstance.QueryTypes.SELECT
         })
       ]);
 
-      // Create a comprehensive month-by-month report
-      const monthData = {};
-      const months = [];
-      
-      // Generate last 7 months
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        const monthKey = date.toISOString().substr(0, 7); // YYYY-MM format
-        months.push(monthKey);
-        monthData[monthKey] = {
-          month: monthKey,
-          registrations: 0,
-          assignments: 0,
-          photos: 0
-        };
-      }
-      
-      // Fill in actual data
-      monthlyRegistrations.forEach(item => {
-        if (monthData[item.month]) {
-          monthData[item.month].registrations = parseInt(item.registrations);
-        }
-      });
-      
-      monthlyAssignments.forEach(item => {
-        if (monthData[item.month]) {
-          monthData[item.month].assignments = parseInt(item.assignments);
-        }
-      });
-      
-      monthlyPhotos.forEach(item => {
-        if (monthData[item.month]) {
-          monthData[item.month].photos = parseInt(item.photos);
-        }
-      });
+      console.log('Current month registration data:', monthlyRegistrations);
+      console.log('Current month assignment data:', monthlyAssignments);
+      console.log('Current month photo data:', monthlyPhotos);
 
-      return months.map(month => monthData[month]);
+      // Create current month report
+      const currentMonthData = {
+        month: currentMonth,
+        registrations: monthlyRegistrations.length > 0 ? parseInt(monthlyRegistrations[0].registrations) : 0,
+        assignments: monthlyAssignments.length > 0 ? parseInt(monthlyAssignments[0].assignments) : 0,
+        photos: monthlyPhotos.length > 0 ? parseInt(monthlyPhotos[0].photos) : 0
+      };
+
+      console.log('Current month data being sent to frontend:', currentMonthData);
+
+      return [currentMonthData];
+
     } catch (error) {
+      console.error('Error in getMonthlyAnalytics:', error);
       return [];
     }
   }
