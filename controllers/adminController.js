@@ -1052,7 +1052,8 @@ class AdminController {
         overallStats,
         user: req.user,
         req: req,
-        filterMother: mother
+        filterMother: mother,
+        isBlockViewer: req.user?.role?.name === 'block_viewer'
       });
     } catch (error) {
       console.error('Children Error:', error);

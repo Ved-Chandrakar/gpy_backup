@@ -39,13 +39,12 @@ router.get('/mothers/:mobile/edit', requireRole(['state', 'collector']), adminCo
 router.post('/mothers/:mobile/edit', requireRole(['state', 'collector']), adminController.updateMother);
 
 // Children Management
-router.get('/children', adminController.children);
-router.get('/children/export', adminController.exportChildren);
-router.get('/children/:id', adminController.viewChild);
-router.get('/children/:id/edit', adminController.editChildForm);
-router.post('/children/:id/edit', adminController.updateChild);
-router.get('/children/:id/tracking', adminController.childPlantTracking);
-router.get('/children/:id/tracking', adminController.childPlantTracking); // Child tracking route
+router.get('/children', requireRole(['state', 'collector', 'block_viewer']), adminController.children);
+router.get('/children/export', requireRole(['state', 'collector']), adminController.exportChildren);
+router.get('/children/:id', requireRole(['state', 'collector', 'block_viewer']), adminController.viewChild);
+router.get('/children/:id/edit', requireRole(['state', 'collector']), adminController.editChildForm);
+router.post('/children/:id/edit', requireRole(['state', 'collector']), adminController.updateChild);
+router.get('/children/:id/tracking', requireRole(['state', 'collector', 'block_viewer']), adminController.childPlantTracking);
 
 // Plants Management
 router.get('/plants', adminController.plants);
