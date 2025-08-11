@@ -53,11 +53,36 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label">&nbsp;</label>
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="fas fa-search me-1"></i>खोजें
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-fill">
+                        <i class="fas fa-search me-1"></i>खोजें
+                    </button>
+                    <% if (req.query.search || req.query.status) { %>
+                        <a href="/admin/users<%= typeof filterType !== 'undefined' && filterType === 'hospital' ? '/hospitals' : typeof filterType !== 'undefined' && filterType === 'mitanin' ? '/mitanins' : '' %>" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    <% } %>
+                </div>
             </div>
         </form>
+        
+        <!-- Active Filters Display -->
+        <% if (req.query.search || req.query.status) { %>
+            <div class="mt-3">
+                <small class="text-muted me-2">सक्रिय फिल्टर:</small>
+                <% if (req.query.search) { %>
+                    <span class="badge bg-info me-2">
+                        <i class="fas fa-search me-1"></i>खोज: <%= req.query.search %>
+                    </span>
+                <% } %>
+                <% if (req.query.status) { %>
+                    <span class="badge bg-success me-2">
+                        <i class="fas fa-filter me-1"></i>स्थिति: 
+                        <%= req.query.status === 'active' ? 'सक्रिय' : 'निष्क्रिय' %>
+                    </span>
+                <% } %>
+            </div>
+        <% } %>
     </div>
 </div>
 
