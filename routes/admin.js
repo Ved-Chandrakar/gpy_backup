@@ -21,17 +21,16 @@ router.get('/', adminController.dashboard);
 router.get('/dashboard', adminController.dashboard);
 router.get('/api/dashboard-data', adminController.getDashboardData); // New API endpoint for real-time updates
 
-// Users Management (Admin, State, Collector/District)
-// Users Management (Admin, State, Collector/District)
-router.get('/users', requireRole(['admin', 'state', 'collector']), adminController.users);
-router.get('/users/hospitals', requireRole(['admin', 'state', 'collector']), adminController.hospitalUsers);
-router.get('/users/mitanins', requireRole(['admin', 'state', 'collector']), adminController.mitaninUsers);
-router.get('/users/export', requireRole(['admin', 'state', 'collector']), adminController.exportUsers);
-router.get('/users/new', requireRole(['admin', 'state', 'collector']), adminController.newUserForm);
-router.post('/users/new', requireRole(['admin', 'state', 'collector']), adminController.createUser);
-router.get('/users/:id/edit', requireRole(['admin', 'state', 'collector']), adminController.editUserForm);
-router.post('/users/:id/edit', requireRole(['admin', 'state', 'collector']), adminController.updateUser);
-router.get('/users/:id/details', requireRole(['admin', 'state', 'collector']), adminController.getUserDetails);
+// Users Management (State, Collector, Block Viewer)
+router.get('/users', requireRole(['state', 'collector', 'block_viewer']), adminController.users);
+router.get('/users/hospitals', requireRole(['state', 'collector', 'block_viewer']), adminController.hospitalUsers);
+router.get('/users/mitanins', requireRole(['state', 'collector', 'block_viewer']), adminController.mitaninUsers);
+router.get('/users/export', requireRole(['state', 'collector', 'block_viewer']), adminController.exportUsers);
+router.get('/users/new', requireRole(['state', 'collector']), adminController.newUserForm);
+router.post('/users/new', requireRole(['state', 'collector']), adminController.createUser);
+router.get('/users/:id/edit', requireRole(['state', 'collector']), adminController.editUserForm);
+router.post('/users/:id/edit', requireRole(['state', 'collector']), adminController.updateUser);
+router.get('/users/:id/details', requireRole(['state', 'collector', 'block_viewer']), adminController.getUserDetails);
 
 // Mothers Management
 router.get('/mothers', adminController.mothers);

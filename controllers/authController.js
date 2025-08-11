@@ -229,7 +229,7 @@ const adminLogin = async (req, res) => {
       role: user.role.name,
     });
 
-    if (!['state', 'collector', 'hospital'].includes(user.role.name)) {
+    if (!['state', 'collector', 'block_viewer'].includes(user.role.name)) {
       console.log('Unauthorized role:', user.role.name);
       req.flash('error', 'आपको एडमिन पैनल का उपयोग करने का अधिकार नहीं है');
       return res.redirect('/admin/login');

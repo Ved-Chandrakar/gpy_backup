@@ -21,9 +21,11 @@
             <i class="fas fa-file-excel me-1"></i>
 एक्सेल निर्यात
         </button>
-        <a href="/admin/users/new" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus me-1"></i>नया उपयोगकर्ता
-        </a>
+        <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+            <a href="/admin/users/new" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>नया उपयोगकर्ता
+            </a>
+        <% } %>
     </div>
 </div>
 
@@ -136,9 +138,11 @@
                                             <button class="btn btn-sm btn-outline-primary view-user-btn" data-bs-toggle="modal" data-bs-target="#userViewModal" data-user-id="<%= user.id %>">
                                                 <i class="fas fa-eye me-1"></i>View
                                             </button>
-                                            <a href="/admin/users/<%= user.id %>/edit" class="btn btn-sm btn-outline-warning">
-                                                <i class="fas fa-edit me-1"></i>Edit
-                                            </a>
+                                            <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                                                <a href="/admin/users/<%= user.id %>/edit" class="btn btn-sm btn-outline-warning">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </a>
+                                            <% } %>
                                         </div>
                                     </td>
                                 </tr>
@@ -261,9 +265,11 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i>बंद करें
                 </button>
-                <button type="button" class="btn btn-warning" id="editUserBtn">
-                    <i class="fas fa-edit me-1"></i>संपादित करें
-                </button>
+                <% if (req.user && (req.user.role.name === 'state' || req.user.role.name === 'collector')) { %>
+                    <button type="button" class="btn btn-warning" id="editUserBtn">
+                        <i class="fas fa-edit me-1"></i>संपादित करें
+                    </button>
+                <% } %>
             </div>
         </div>
     </div>

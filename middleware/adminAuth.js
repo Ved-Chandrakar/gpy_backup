@@ -3,7 +3,7 @@ const { User, Role } = require('../models');
 
 /**
  * Admin Authentication Middleware
- * Checks if user is authenticated and has state/collector/hospital role
+ * Checks if user is authenticated and has state/collector/block_viewer role
  */
 const adminAuth = async (req, res, next) => {
   try {
@@ -42,8 +42,8 @@ const adminAuth = async (req, res, next) => {
         return res.redirect('/admin/login');
       }
 
-      // Check if user has state, collector, or hospital role (state acts as admin)
-      if (!['state', 'collector', 'hospital'].includes(user.role.name)) {
+      // Check if user has admin panel access
+      if (!['state', 'collector', 'block_viewer'].includes(user.role.name)) {
         req.flash('error', 'आपको प्रशासक पैनल का उपयोग करने का अधिकार नहीं है');
         return res.redirect('/admin/login');
       }
@@ -54,8 +54,10 @@ const adminAuth = async (req, res, next) => {
         name: user.name,
         mobile: user.mobile,
         email: user.email,
-        role: user.role.name,
-        permissions: user.role.permissions,
+        role: {
+          name: user.role.name,
+          permissions: user.role.permissions
+        },
         district_id: user.district_id,
         block_id: user.block_id,
         hospital_name: user.hospital_name,
@@ -88,7 +90,7 @@ const adminAuth = async (req, res, next) => {
 
 /**
  * Role-based authorization middleware
- * @param {string|array} roles - Required roles (state, collector, hospital, etc.)
+ * @param {string|array} roles - Required roles (state, collector, block_viewer, etc.)
  */
 const requireRole = (roles) => {
   return (req, res, next) => {
@@ -97,7 +99,7 @@ const requireRole = (roles) => {
       return res.redirect('/admin/login');
     }
 
-    const userRole = req.user.role;
+    const userRole = req.user.role.name;
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
 
     if (!requiredRoles.includes(userRole)) {
@@ -161,14 +163,16 @@ const optionalAdminAuth = async (req, res, next) => {
           }]
         });
 
-        if (user && ['state', 'collector', 'hospital'].includes(user.role.name)) {
+        if (user && ['state', 'collector', 'block_viewer'].includes(user.role.name)) {
           req.user = {
             id: user.id,
             name: user.name,
             mobile: user.mobile,
             email: user.email,
-            role: user.role.name,
-            permissions: user.role.permissions,
+            role: {
+              name: user.role.name,
+              permissions: user.role.permissions
+            },
             district_id: user.district_id,
             block_id: user.block_id,
             hospital_name: user.hospital_name,
