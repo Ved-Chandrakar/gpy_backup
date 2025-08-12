@@ -86,6 +86,16 @@ const User = sequelize.define('User', {
     allowNull: true,
     comment: 'अस्पताल का नाम (deprecated - use hospital_id)'
   },
+  village: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: 'गाँव का नाम'
+  },
+  address: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'पूरा पता'
+  },
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,

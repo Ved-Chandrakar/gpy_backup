@@ -190,6 +190,11 @@ const Child = sequelize.define('Child', {
     },
     comment: 'गाँव कोड'
   },
+  village_name: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: 'गाँव का नाम'
+  },
   // district_id: {
   //   type: DataTypes.INTEGER,
   //   allowNull: true,

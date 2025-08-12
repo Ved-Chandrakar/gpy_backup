@@ -74,7 +74,8 @@ const getDashboard = async (req, res) => {
       totalMothers,
       activePlants,
       uploadedPhotos,
-      distributedPlants
+      distributedPlants,
+      pendingSchedules
     ] = await Promise.all([
       // Count unique mothers (users with mother role) who have children registered by this hospital
       sequelize.query(`
@@ -126,6 +127,23 @@ const getDashboard = async (req, res) => {
           where: { hospital_id: req.user.id },
           attributes: []
         }]
+      }),
+
+      // Pending schedules for this week for this hospital (assigned by current user)
+      PlantTrackingSchedule.count({
+        where: {
+          upload_status: 'pending',
+          due_date: {
+            [Op.gte]: new Date(), // Due date is today or future
+            [Op.lte]: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Due date is within next 7 days
+          }
+        },
+        include: [{
+          model: PlantAssignment,
+          as: 'assignment',
+          where: { assigned_by: req.user.id }, // Only assignments made by current logged-in user
+          attributes: []
+        }]
       })
     ]);
 
@@ -133,7 +151,8 @@ const getDashboard = async (req, res) => {
       total_mothers: totalMothers,
       active_plants: activePlants,
       uploaded_photos: uploadedPhotos,
-      distributed_plants: distributedPlants
+      distributed_plants: distributedPlants,
+      pending_schedules: pendingSchedules
     };
 
     // Get real district list from database
@@ -179,7 +198,7 @@ const getDashboard = async (req, res) => {
       category: plant.category
     }));
 
-    console.log(`✅ Hospital dashboard data retrieved - Mothers: ${counters.total_mothers}, Active Plants: ${counters.active_plants}, Photos: ${counters.uploaded_photos}, Distributed: ${counters.distributed_plants}, Districts: ${district_list.length}, Blocks: ${block_list.length}, Plant Types: ${plant_list.length}`);
+    console.log(`✅ Hospital dashboard data retrieved - Mothers: ${counters.total_mothers}, Active Plants: ${counters.active_plants}, Photos: ${counters.uploaded_photos}, Distributed: ${counters.distributed_plants}, Pending Schedules (This Week, Assigned by User ${req.user.id}): ${counters.pending_schedules}, Districts: ${district_list.length}, Blocks: ${block_list.length}, Plant Types: ${plant_list.length}`);
 
     res.json({
       success: true,
@@ -221,6 +240,8 @@ const registerNewMother = async (req, res) => {
       blood_group,
       district_lgd_code,
       block_lgd_code,
+      village: village_name,  // New field
+      address,              // New field
       plants,
       child_gender,
       child_order,          // New field
@@ -658,6 +679,8 @@ const registerNewMother = async (req, res) => {
           role_id: 5, // Mother role
           district_id: null, // Will set manually if needed
           block_id: null,     // Will set manually if needed
+          village: village_name,  // Add village field
+          address: address,       // Add address field
           is_password_changed: 0, // Default to 0 (password not changed)
           is_active: true
         }, { transaction });
@@ -678,6 +701,8 @@ const registerNewMother = async (req, res) => {
         gender: child_gender,
         child_order: child_order || null,
         weight_at_birth: weight_at_birth ? parseFloat(weight_at_birth) : null,
+        village_name: village_name || null,  // Add village field
+        address: address || null,            // Add address field
         plant_quantity: finalPlantQuantity, // Use plant_quantity instead of plants
         mmjy: mmjy || null,
         pmmvy: pmmvy || null,
@@ -1028,10 +1053,10 @@ const getMotherInfo = async (req, res) => {
       });
     }
 
-    // Get user account details for the mother
+    // Get user account details for the mother with village and address
     const userAccount = await User.findOne({
       where: { mobile: mother.mother_mobile },
-      attributes: ['id', 'userid', 'name', 'mobile', 'is_password_changed', 'is_active', 'created_at']
+      attributes: ['id', 'userid', 'name', 'mobile', 'village', 'address', 'is_password_changed', 'is_active', 'created_at']
     });
 
     // Get plant assignments and tracking information
@@ -1194,7 +1219,10 @@ const getMotherInfo = async (req, res) => {
         plant_quantity: mother.plant_quantity || null,
         registration_date: mother.created_at,
         last_updated: mother.updated_at,
-        is_active: mother.is_active
+        is_active: mother.is_active,
+        village_name: mother.village_name || null,
+        user_village: userAccount?.village || null,
+        user_address: userAccount?.address || null
       },
       government_schemes: {
         mmjy: mother.mmjy || null,
