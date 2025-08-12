@@ -1,4 +1,4 @@
-const { District, Plant, Block, Child, User, Village, PlantAssignment, PlantTrackingSchedule, PlantPhoto, Role } = require('../models');
+const { District, Plant, Block, Child, User, Village, PlantAssignment, PlantTrackingSchedule, PlantPhoto, Role, MotherPhoto } = require('../models');
 const { Op } = require('sequelize');
 const { sequelize } = require('../config/database');
 const multer = require('multer');
@@ -1329,6 +1329,30 @@ const getMotherInfo = async (req, res) => {
       })()
     };
 
+    // Get mother photos
+    const motherPhotos = await MotherPhoto.findAll({
+      where: { child_id: child_id },
+      include: [
+        {
+          model: User,
+          as: 'uploadedBy',
+          attributes: ['id', 'name', 'userid']
+        }
+      ],
+      order: [['upload_date', 'DESC']]
+    });
+
+    // Format mother photos with full URLs
+    const formattedMotherPhotos = motherPhotos.map(photo => ({
+      id: photo.id,
+      photo_type: photo.photo_type,
+      photo_url: `${req.protocol}://${req.get('host')}/uploads/mothers/${photo.photo_url}`,
+      original_filename: photo.original_filename,
+      file_size: photo.file_size,
+      upload_date: photo.upload_date,
+      is_verified: photo.is_verified
+    }));
+
     // Format comprehensive response
     const motherDetails = {
       child_info: {
@@ -1387,6 +1411,10 @@ const getMotherInfo = async (req, res) => {
         } : null
       },
       plant_tracking_info: trackingInfo,
+      mother_photos: {
+        total_photos: formattedMotherPhotos.length,
+        photos: formattedMotherPhotos
+      },
       user_account: userAccount ? {
         user_id: userAccount.id,
         userid: userAccount.userid,
@@ -1416,10 +1444,213 @@ const getMotherInfo = async (req, res) => {
   }
 };
 
+// Upload mother photos API
+const uploadMotherPhotos = async (req, res) => {
+  try {
+    const { child_id } = req.params;  // Get from URL parameter, not body
+    console.log(`Mother photos upload requested for child_id: ${child_id} by hospital user: ${req.user.id}`);
+
+    // Validate child_id
+    if (!child_id || isNaN(child_id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid child_id is required'
+      });
+    }
+
+    // Check if child exists and belongs to this hospital
+    const child = await Child.findOne({
+      where: {
+        id: child_id,
+        hospital_id: req.user.id
+      }
+    });
+
+    if (!child) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child not found or not registered by your hospital'
+      });
+    }
+
+    // Check if files are uploaded
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No photos uploaded'
+      });
+    }
+
+    // Process uploaded photos
+    const uploadedPhotos = [];
+    const allowedTypes = ['certificate', 'plant_distribution'];
+
+    // req.files is an object with field names as keys and arrays of files as values
+    for (const [photoType, filesArray] of Object.entries(req.files)) {
+      if (!allowedTypes.includes(photoType)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid photo type: ${photoType}. Allowed types: ${allowedTypes.join(', ')}`
+        });
+      }
+
+      // Process each file in the array for this photo type
+      for (const file of filesArray) {
+        try {
+          // Save photo record to database
+        const motherPhoto = await MotherPhoto.create({
+          child_id: child_id,
+          photo_type: photoType,
+          photo_url: file.filename, // Store filename, will construct full URL when needed
+          original_filename: file.originalname,
+          file_size: file.size,
+          uploaded_by: req.user.id,
+          upload_date: new Date(),
+          is_verified: false
+        });
+
+        uploadedPhotos.push({
+          id: motherPhoto.id,
+          photo_type: photoType,
+          photo_url: `${req.protocol}://${req.get('host')}/uploads/mothers/${file.filename}`,
+          original_filename: file.originalname,
+          file_size: file.size,
+          upload_date: motherPhoto.upload_date
+        });
+
+        console.log(`✅ Mother photo uploaded: ${photoType} for child_id: ${child_id}`);
+        } catch (dbError) {
+          console.error(`❌ Database error for ${photoType}:`, dbError);
+          return res.status(500).json({
+            success: false,
+            message: `Failed to save ${photoType} photo details`
+          });
+        }
+      } // End file loop
+    } // End photo type loop
+
+    console.log(`✅ Total ${uploadedPhotos.length} mother photos uploaded for child_id: ${child_id}`);
+
+    res.json({
+      success: true,
+      message: 'Mother photos uploaded successfully',
+      data: {
+        child_id: child_id,
+        uploaded_photos: uploadedPhotos,
+        total_photos: uploadedPhotos.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Upload mother photos error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while uploading photos',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Get mother photos API
+const getMotherPhotos = async (req, res) => {
+  try {
+    const { child_id } = req.params;
+    console.log(`Mother photos requested for child_id: ${child_id} by hospital user: ${req.user.id}`);
+
+    // Validate child_id
+    if (!child_id || isNaN(child_id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid child_id is required'
+      });
+    }
+
+    // Check if child exists and belongs to this hospital
+    const child = await Child.findOne({
+      where: {
+        id: child_id,
+        hospital_id: req.user.id
+      }
+    });
+
+    if (!child) {
+      return res.status(404).json({
+        success: false,
+        message: 'Child not found or not registered by your hospital'
+      });
+    }
+
+    // Get mother photos
+    const motherPhotos = await MotherPhoto.findAll({
+      where: { child_id: child_id },
+      include: [
+        {
+          model: User,
+          as: 'uploadedBy',
+          attributes: ['id', 'name', 'userid']
+        },
+        {
+          model: User,
+          as: 'verifiedBy',
+          attributes: ['id', 'name', 'userid']
+        }
+      ],
+      order: [['upload_date', 'DESC']]
+    });
+
+    // Format response with full URLs
+    const formattedPhotos = motherPhotos.map(photo => ({
+      id: photo.id,
+      photo_type: photo.photo_type,
+      photo_url: `${req.protocol}://${req.get('host')}/uploads/mothers/${photo.photo_url}`,
+      original_filename: photo.original_filename,
+      file_size: photo.file_size,
+      upload_date: photo.upload_date,
+      is_verified: photo.is_verified,
+      verified_at: photo.verified_at,
+      remarks: photo.remarks,
+      uploaded_by: photo.uploadedBy ? {
+        id: photo.uploadedBy.id,
+        name: photo.uploadedBy.name,
+        userid: photo.uploadedBy.userid
+      } : null,
+      verified_by: photo.verifiedBy ? {
+        id: photo.verifiedBy.id,
+        name: photo.verifiedBy.name,
+        userid: photo.verifiedBy.userid
+      } : null
+    }));
+
+    console.log(`✅ ${formattedPhotos.length} mother photos retrieved for child_id: ${child_id}`);
+
+    res.json({
+      success: true,
+      message: 'Mother photos retrieved successfully',
+      data: {
+        child_id: child_id,
+        mother_name: child.mother_name,
+        child_name: child.child_name,
+        photos: formattedPhotos,
+        total_photos: formattedPhotos.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Get mother photos error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching photos',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   getDashboard,
   registerNewMother,
   getMothersList,
   getMotherInfo,
-  upload
+  upload,
+  uploadMotherPhotos,
+  getMotherPhotos
 };

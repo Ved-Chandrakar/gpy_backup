@@ -16,6 +16,7 @@ const PlantTrackingSchedule = require('./PlantTrackingSchedule');
 const ReplacementRequest = require('./ReplacementRequest');
 const FCMToken = require('./FCMToken');
 const LogLogin = require('./LogLogin');
+const MotherPhoto = require('./MotherPhoto');
 
 // Define associations
 const defineAssociations = () => {
@@ -72,6 +73,14 @@ const defineAssociations = () => {
   PlantAssignment.hasMany(PlantTrackingSchedule, { foreignKey: 'assignment_id', as: 'trackingSchedules' });
   PlantPhoto.hasOne(PlantTrackingSchedule, { foreignKey: 'photo_id', as: 'trackingSchedule' });
 
+  // Mother photo associations
+  MotherPhoto.belongsTo(Child, { foreignKey: 'child_id', as: 'child' });
+  MotherPhoto.belongsTo(User, { foreignKey: 'uploaded_by', as: 'uploadedBy' });
+  MotherPhoto.belongsTo(User, { foreignKey: 'verified_by', as: 'verifiedBy' });
+
+  Child.hasMany(MotherPhoto, { foreignKey: 'child_id', as: 'motherPhotos' });
+  User.hasMany(MotherPhoto, { foreignKey: 'uploaded_by', as: 'uploadedMotherPhotos' });
+
   // Replacement request associations
   ReplacementRequest.belongsTo(PlantAssignment, { foreignKey: 'assignment_id', as: 'assignment' });
   ReplacementRequest.belongsTo(User, { foreignKey: 'requested_by', as: 'requestedBy' });
@@ -117,5 +126,6 @@ module.exports = {
   ReplacementRequest,
   FCMToken,
   LogLogin,
+  MotherPhoto,
   syncDatabase
 };
