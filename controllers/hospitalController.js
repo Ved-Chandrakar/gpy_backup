@@ -949,26 +949,92 @@ const getMothersList = async (req, res) => {
       distinct: true
     });
 
-    // Format response data
-    const mothersList = mothers.map(mother => ({
-      child_id: mother.id,
-      mother_name: mother.mother_name,
-      father_husband_name: mother.father_husband_name || null,
-      child_name: mother.child_name,
-      mother_mobile: mother.mother_mobile,
-      delivery_date: mother.dob,
-      delivery_time: mother.delivery_time || null,
-      delivery_type: mother.delivery_type || null,
-      blood_group: mother.blood_group || null,
-      child_gender: mother.gender,
-      child_order: mother.child_order || null,
-      weight_at_birth: mother.weight_at_birth || null,
-      location: {
-        district_name: mother.district?.district_name || 'N/A',
-        block_name: mother.block?.block_name || 'N/A',
-        village_name: mother.village?.village_name || 'N/A'
-      },
-      registration_date: mother.created_at
+    // Format response data with photo tracking counts
+    const mothersList = await Promise.all(mothers.map(async (mother) => {
+      // Get plant assignments for this child
+      const plantAssignments = await PlantAssignment.findAll({
+        where: { child_id: mother.id },
+        attributes: ['id', 'plant_id', 'status'],
+        include: [
+          {
+            model: Plant,
+            as: 'plant',
+            attributes: ['id', 'name', 'local_name']
+          }
+        ]
+      });
+
+      // Get tracking schedules for all assignments of this child
+      const trackingSchedules = await PlantTrackingSchedule.findAll({
+        where: {
+          assignment_id: plantAssignments.map(assignment => assignment.id)
+        },
+        attributes: ['id', 'assignment_id', 'upload_status', 'due_date', 'week_number']
+      });
+
+      // Calculate photo counts
+      const totalAssignments = plantAssignments.length;
+      const completedPhotos = trackingSchedules.filter(schedule => schedule.upload_status === 'completed').length;
+      const pendingPhotos = trackingSchedules.filter(schedule => schedule.upload_status === 'pending').length;
+      const overduePhotos = trackingSchedules.filter(schedule => 
+        schedule.upload_status === 'pending' && new Date(schedule.due_date) < new Date()
+      ).length;
+
+      // Calculate expected photos based on delivery date and current date
+      const deliveryDate = new Date(mother.dob);
+      const currentDate = new Date();
+      const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+      
+      // Green Palna tracking: 12 weeks total (weekly for first 4 weeks, then bi-weekly)
+      let expectedPhotosPerPlant = 0;
+      if (daysSinceDelivery >= 7) expectedPhotosPerPlant += 1;   // Week 1
+      if (daysSinceDelivery >= 14) expectedPhotosPerPlant += 1;  // Week 2
+      if (daysSinceDelivery >= 21) expectedPhotosPerPlant += 1;  // Week 3
+      if (daysSinceDelivery >= 28) expectedPhotosPerPlant += 1;  // Week 4
+      if (daysSinceDelivery >= 42) expectedPhotosPerPlant += 1;  // Week 6
+      if (daysSinceDelivery >= 56) expectedPhotosPerPlant += 1;  // Week 8
+      if (daysSinceDelivery >= 70) expectedPhotosPerPlant += 1;  // Week 10
+      if (daysSinceDelivery >= 84) expectedPhotosPerPlant += 1;  // Week 12
+
+      const expectedPhotos = totalAssignments * expectedPhotosPerPlant;
+      const missedPhotos = Math.max(0, expectedPhotos - completedPhotos);
+
+      return {
+        child_id: mother.id,
+        mother_name: mother.mother_name,
+        father_husband_name: mother.father_husband_name || null,
+        child_name: mother.child_name,
+        mother_mobile: mother.mother_mobile,
+        delivery_date: mother.dob,
+        delivery_time: mother.delivery_time || null,
+        delivery_type: mother.delivery_type || null,
+        blood_group: mother.blood_group || null,
+        child_gender: mother.gender,
+        child_order: mother.child_order || null,
+        weight_at_birth: mother.weight_at_birth || null,
+        location: {
+          district_name: mother.district?.district_name || 'N/A',
+          block_name: mother.block?.block_name || 'N/A',
+          village_name: mother.village?.village_name || 'N/A'
+        },
+        plant_tracking: {
+          total_plants: totalAssignments,
+          total_schedules: trackingSchedules.length,
+          uploaded_photos: completedPhotos,
+          pending_photos: pendingPhotos,
+          overdue_photos: overduePhotos,
+          expected_photos: expectedPhotos,
+          missed_photos: missedPhotos,
+          completion_percentage: expectedPhotos > 0 ? Math.round((completedPhotos / expectedPhotos) * 100) : 0
+        },
+        plant_list: plantAssignments.map(assignment => ({
+          plant_id: assignment.plant_id,
+          plant_name: assignment.plant?.name || 'Unknown',
+          plant_local_name: assignment.plant?.local_name || 'Unknown',
+          assignment_status: assignment.status
+        })),
+        registration_date: mother.created_at
+      };
     }));
 
     // Calculate pagination info
@@ -1198,7 +1264,69 @@ const getMotherInfo = async (req, res) => {
         total_photos_all_plants: photos.length,
         completion_percentage_all_plants: trackingSchedules.length > 0 ? 
           Math.round((trackingSchedules.filter(s => s.upload_status === 'completed').length / trackingSchedules.length) * 100) : 0
-      }
+      },
+      // Add photo counts for summary display
+      uploaded_photos: trackingSchedules.filter(s => s.upload_status === 'completed').length,
+      pending_photos: trackingSchedules.filter(s => s.upload_status === 'pending').length,
+      overdue_photos: trackingSchedules.filter(s => 
+        s.upload_status === 'pending' && new Date(s.due_date) < new Date()
+      ).length,
+      expected_photos: (() => {
+        // Calculate expected photos based on delivery date
+        const deliveryDate = new Date(mother.dob);
+        const currentDate = new Date();
+        const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+        
+        let expectedPhotosPerPlant = 0;
+        if (daysSinceDelivery >= 7) expectedPhotosPerPlant += 1;   // Week 1
+        if (daysSinceDelivery >= 14) expectedPhotosPerPlant += 1;  // Week 2
+        if (daysSinceDelivery >= 21) expectedPhotosPerPlant += 1;  // Week 3
+        if (daysSinceDelivery >= 28) expectedPhotosPerPlant += 1;  // Week 4
+        if (daysSinceDelivery >= 42) expectedPhotosPerPlant += 1;  // Week 6
+        if (daysSinceDelivery >= 56) expectedPhotosPerPlant += 1;  // Week 8
+        if (daysSinceDelivery >= 70) expectedPhotosPerPlant += 1;  // Week 10
+        if (daysSinceDelivery >= 84) expectedPhotosPerPlant += 1;  // Week 12
+        
+        return plantAssignments.length * expectedPhotosPerPlant;
+      })(),
+      missed_photos: (() => {
+        const deliveryDate = new Date(mother.dob);
+        const currentDate = new Date();
+        const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+        
+        let expectedPhotosPerPlant = 0;
+        if (daysSinceDelivery >= 7) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 14) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 21) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 28) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 42) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 56) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 70) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 84) expectedPhotosPerPlant += 1;
+        
+        const expectedPhotos = plantAssignments.length * expectedPhotosPerPlant;
+        const completedPhotos = trackingSchedules.filter(s => s.upload_status === 'completed').length;
+        return Math.max(0, expectedPhotos - completedPhotos);
+      })(),
+      completion_percentage: (() => {
+        const deliveryDate = new Date(mother.dob);
+        const currentDate = new Date();
+        const daysSinceDelivery = Math.floor((currentDate - deliveryDate) / (1000 * 60 * 60 * 24));
+        
+        let expectedPhotosPerPlant = 0;
+        if (daysSinceDelivery >= 7) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 14) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 21) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 28) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 42) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 56) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 70) expectedPhotosPerPlant += 1;
+        if (daysSinceDelivery >= 84) expectedPhotosPerPlant += 1;
+        
+        const expectedPhotos = plantAssignments.length * expectedPhotosPerPlant;
+        const completedPhotos = trackingSchedules.filter(s => s.upload_status === 'completed').length;
+        return expectedPhotos > 0 ? Math.round((completedPhotos / expectedPhotos) * 100) : 0;
+      })()
     };
 
     // Format comprehensive response
