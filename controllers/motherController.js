@@ -1,4 +1,4 @@
-const { Child, User, District, Block, Village, PlantAssignment, Plant, PlantPhoto, PlantTrackingSchedule } = require('../models');
+const { Child, User, District, Block, Village, PlantAssignment, Plant, PlantPhoto, PlantTrackingSchedule, MotherPhoto } = require('../models');
 const { validateRequest, schemas } = require('../middleware/validation');
 const { Op } = require('sequelize');
 const { 
@@ -704,6 +704,79 @@ const uploadMotherPlantPhoto = async (req, res) => {
   }
 };
 
+// Get mother's uploaded photos (certificate and plant distribution photos)
+const getMotherPhotos = async (req, res) => {
+  try {
+    console.log('[MOTHER_PHOTOS] Getting photos for mother user:', req.user.id);
+    console.log('[MOTHER_PHOTOS] Mother mobile:', req.user.mobile);
+    
+    // Find children registered with this mother's mobile number
+    const children = await Child.findAll({
+      where: {
+        mother_mobile: req.user.mobile
+      }
+    });
+
+    if (!children || children.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No children found for this mother'
+      });
+    }
+
+    console.log('[MOTHER_PHOTOS] Found children:', children.length);
+    const childIds = children.map(child => child.id);
+
+    // Get photos for all children of this mother
+    const photos = await MotherPhoto.findAll({
+      where: {
+        child_id: childIds
+      },
+      include: [
+        {
+          model: Child,
+          as: 'child',
+          attributes: ['id', 'child_name', 'dob']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    console.log('[MOTHER_PHOTOS] Found photos:', photos.length);
+
+    const formattedPhotos = photos.map(photo => {
+      const processedPhoto = processPhotoObject(photo);
+      return {
+        id: processedPhoto.id,
+        photoType: processedPhoto.photo_type,
+        displayName: processedPhoto.photo_type === 'certificate' ? 'जन्म प्रमाण पत्र' : 'पौधा वितरण फोटो',
+        photoUrl: getFullPhotoUrl(processedPhoto.photo_url),
+        uploadDate: processedPhoto.createdAt,
+        fileSize: processedPhoto.file_size || 0,
+        formattedFileSize: processedPhoto.file_size ? `${(processedPhoto.file_size / 1024).toFixed(1)} KB` : 'N/A',
+        childName: photo.child ? photo.child.child_name : 'Unknown',
+        childDob: photo.child ? photo.child.dob : null
+      };
+    });
+
+    res.json({
+      success: true,
+      message: 'Photos retrieved successfully',
+      data: {
+        totalPhotos: formattedPhotos.length,
+        photos: formattedPhotos
+      }
+    });
+
+  } catch (error) {
+    console.error('[MOTHER_PHOTOS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
 module.exports = {
   registerMother: [validateRequest(schemas.childRegistration), registerMother],
   getMothers,
@@ -712,5 +785,6 @@ module.exports = {
   // New mother tracking APIs
   getMotherPlantTrackingList,
   getMotherPlantTrackingDetails,
-  uploadMotherPlantPhoto
+  uploadMotherPlantPhoto,
+  getMotherPhotos
 };

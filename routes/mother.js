@@ -51,4 +51,7 @@ router.post('/plants/:assignmentId/upload-photo',
   motherController.uploadMotherPlantPhoto
 );
 
+// Get mother's uploaded photos (certificate and plant distribution photos)
+router.get('/photos', authMiddleware, roleMiddleware('mother'), motherController.getMotherPhotos);
+
 module.exports = router;
