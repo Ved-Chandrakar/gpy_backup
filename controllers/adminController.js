@@ -1117,13 +1117,28 @@ class AdminController {
         }));
       }
 
-      res.render('admin/child-view', {
-        title: 'बच्चे का विवरण',
-        currentPage: 'children',
-        child,
-        plantsWithDetails,
-        user: req.user
-      });
+        // Always send the village name as a string from the correct source
+        let childData = child.get({ plain: true });
+        childData.village = childData.village_name || (childData.village && childData.village.village_name) || '';
+
+        // Fetch mother and plant_distribution certificates for this child
+        const MotherPhoto = require('../models/MotherPhoto');
+        const motherCertificates = await MotherPhoto.findAll({
+          where: {
+            child_id: childId,
+            photo_type: ['certificate', 'plant_distribution']
+          },
+          order: [['upload_date', 'DESC']]
+        });
+
+        res.render('admin/child-view', {
+          title: 'बच्चे का विवरण',
+          currentPage: 'children',
+          child: childData,
+          plantsWithDetails,
+          motherCertificates,
+          user: req.user
+        });
     } catch (error) {
       console.error('View Child Error:', error);
       res.status(500).render('error', {

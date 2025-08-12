@@ -27,6 +27,47 @@
     </div>
 
     <div class="row">
+    <!-- Certificate Section -->
+    <% if (motherCertificates && motherCertificates.length > 0) { %>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">प्रमाण पत्र (Certificates)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <% motherCertificates.forEach(function(cert) { %>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <% let certPath = cert.photo_url && cert.photo_url.startsWith('/uploads/mothers/') ? cert.photo_url : ('/uploads/mothers/' + cert.photo_url); %>
+                                    <img src="<%= certPath %>" class="card-img-top" alt="Certificate" style="max-height:200px;object-fit:contain;">
+                                    <div class="card-body p-2">
+                                        <div class="fw-bold">
+                                            <% if(cert.photo_type === 'certificate') { %>
+                                                माता का प्रमाण पत्र
+                                            <% } else if(cert.photo_type === 'plant_distribution') { %>
+                                                पौधा वितरण प्रमाण पत्र
+                                            <% } else { %>
+                                                प्रमाण पत्र
+                                            <% } %>
+                                        </div>
+                                        <% if(cert.upload_date) { %>
+                                            <div class="small text-muted">अपलोड: <%= new Date(cert.upload_date).toLocaleDateString('hi-IN') %></div>
+                                        <% } %>
+                                        <% if(cert.original_filename) { %>
+                                            <div class="small text-muted">फाइल: <%= certPath %></div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
         <!-- Basic Information -->
         <div class="col-lg-6">
             <div class="card mb-4">
@@ -192,6 +233,18 @@
                             <%= child.block ? child.block.block_name : 'अनुपलब्ध' %>
                         </div>
                     </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4"><strong>गांव:</strong></div>
+                            <div class="col-sm-8">
+                                <%= child.village ? child.village : 'अनुपलब्ध' %>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4"><strong>पूरा पता:</strong></div>
+                            <div class="col-sm-8">
+                                <%= child.address || (child.village && child.village.address) || 'अनुपलब्ध' %>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>
